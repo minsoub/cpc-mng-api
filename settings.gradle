@@ -1,0 +1,4 @@
+rootProject.name = 'cpc-mng-api'
+
+include("persistence:mongodb")
+include("api")

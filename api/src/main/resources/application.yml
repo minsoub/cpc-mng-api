@@ -1,0 +1,61 @@
+server:
+  shutdown: graceful
+  port: 8081
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  devtools:
+    restart:
+      enabled: false
+
+application:
+  version: /v1
+  prefix: /api
+  exclude-prefix-path: springdoc
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: metrics, prometheus, health
+
+---
+spring:
+  config:
+    import: classpath:aws-properties.yml, classpath:springdoc.yml
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test
+
+---
+spring:
+  config:
+    import: classpath:aws-properties.yml, classpath:springdoc.yml
+    activate:
+      on-profile: default
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test
+
+---
+spring:
+  config:
+    import: classpath:aws-properties-dev.yml, classpath:springdoc.yml
+    activate:
+      on-profile: dev
+
+---
+spring:
+  config:
+    import: classpath:aws-properties.yml
+    activate:
+      on-profile: prod
+springdoc:
+  api-docs:
+    enabled: false
