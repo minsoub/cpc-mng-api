@@ -19,6 +19,26 @@ management:
       exposure:
         include: metrics, prometheus, health
 
+logging:
+  level:
+    root: ${auth.api.logging.level.root:DEBUG}
+    org.springframework.data.convert.CustomConversions: ERROR
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: ${auth.api.logging.level.mongo:DEBUG}
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error
+        encryptionsdk: DEBUG
+
+    io:
+      spring:
+        cloud: INFO
+
 ---
 spring:
   config:
@@ -27,21 +47,14 @@ spring:
       on-profile: local
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: test
-
----
-spring:
-  config:
-    import: classpath:aws-properties.yml, classpath:springdoc.yml
-    activate:
-      on-profile: default
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: test
+      host: ${auth.mongo.host:localhost}
+      port: ${auth.mongo.port:27017}
+      database: ${auth.mongo.database:test}
+      auto-index-creation: true
+      uuid-representation: standard
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml
 
 ---
 spring:
@@ -49,6 +62,17 @@ spring:
     import: classpath:aws-properties-dev.yml, classpath:springdoc.yml
     activate:
       on-profile: dev
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml
+
+---
+spring:
+  config:
+    import: classpath:aws-properties-eks-dev.yml, classpath:springdoc.yml
+    activate:
+      on-profile: eks-dev
+logging:
+  config: classpath:logback-spring-dev.xml
 
 ---
 spring:
@@ -59,3 +83,5 @@ spring:
 springdoc:
   api-docs:
     enabled: false
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml

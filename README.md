@@ -16,7 +16,7 @@
 
 - API
     - api
-    - com.bithumbsystems.cpc.management.api.{project}
+    - com.bithumbsystems.cpc.api.{project}
         - domain 
             - controller
             - service

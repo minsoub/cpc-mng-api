@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpc-mng-api
+  namespace: NAMESPACE
+  labels:
+    app: cpc-mng-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cpc-mng-api
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: cpc-mng-api
+    spec:
+      containers:
+        - name: cpc-mng-api
+          image: AWS_ECR_URI
+          ports:
+            - containerPort: 8080
+          resources: {}
