@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.main.model.response;
 
-import java.util.ArrayList;
+import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,13 +13,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MainContentsResponse {
 
-  private Long id;
-  private ArrayList<Long> virtualAssetTrends;
-  private ArrayList<Long> blockchainNews;
+  private List<BoardResponse> virtualAssetTrends;
+  private List<BoardResponse> blockchainNews;
   private String investmentGuide1Id;
-  private ArrayList<Long> investmentGuide1;
+  private List<BoardResponse> investmentGuide1;
   private String investmentGuide2Id;
-  private ArrayList<Long> investmentGuide2;
+  private List<BoardResponse> investmentGuide2;
   private String investmentGuide3Id;
-  private ArrayList<Long> investmentGuide3;
+  private List<BoardResponse> investmentGuide3;
 }

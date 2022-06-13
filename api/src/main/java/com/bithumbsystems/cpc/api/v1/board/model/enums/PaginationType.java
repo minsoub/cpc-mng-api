@@ -20,9 +20,9 @@ public enum PaginationType implements EnumMapperType {
   }
 
   public static @Nullable String getTitle(String code) {
-    for (PaginationType boardType : PaginationType.values()) {
-      if (code.equals(boardType.getCode())) {
-        return boardType.getTitle();
+    for (PaginationType paginationType : PaginationType.values()) {
+      if (code.equals(paginationType.getCode())) {
+        return paginationType.getTitle();
       }
     }
     return null;

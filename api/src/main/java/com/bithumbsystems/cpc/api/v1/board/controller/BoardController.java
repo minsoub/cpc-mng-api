@@ -39,7 +39,7 @@ public class BoardController {
    * 게시판 유형 조회
    * @return
    */
-  @GetMapping(value = "/boardTypes")
+  @GetMapping(value = "/board-types")
   @Operation(description = "게시판 유형 조회")
   public ResponseEntity<Mono<?>> getBoardTypes() {
     return ResponseEntity.ok().body(boardService.getBoardTypes()
@@ -51,7 +51,7 @@ public class BoardController {
    * 페이징 유형 조회
    * @return
    */
-  @GetMapping(value = "/paginationTypes")
+  @GetMapping(value = "/pagination-types")
   @Operation(description = "페이징 유형 조회")
   public ResponseEntity<Mono<?>> getPaginationTypes() {
     return ResponseEntity.ok().body(boardService.getPaginationTypes()

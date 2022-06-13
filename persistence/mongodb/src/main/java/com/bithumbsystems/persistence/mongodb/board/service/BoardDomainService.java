@@ -91,6 +91,17 @@ public class BoardDomainService {
   }
 
   /**
+   * 메인 컨텐츠 설정용 게시글 목록 조회
+   * @param boardMasterId 게시판 ID
+   * @param keyword 키워드
+   * @return
+   */
+  public Flux<Board> getBoardsForMain(String boardMasterId, LocalDateTime fromDate, LocalDateTime toDate, String keyword) {
+    Boolean isUse = true;
+    return boardRepository.findByConditionForMain(boardMasterId, fromDate, toDate, isUse, keyword);
+  }
+
+  /**
    * 게시글 조회
    * @param boardId 게시글 ID
    * @return
