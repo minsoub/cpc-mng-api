@@ -93,6 +93,8 @@ public class BoardDomainService {
   /**
    * 메인 컨텐츠 설정용 게시글 목록 조회
    * @param boardMasterId 게시판 ID
+   * @param fromDate 검색 시작일자
+   * @param toDate 검색 종료일자
    * @param keyword 키워드
    * @return
    */

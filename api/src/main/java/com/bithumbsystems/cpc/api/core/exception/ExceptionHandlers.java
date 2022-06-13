@@ -3,6 +3,7 @@ package com.bithumbsystems.cpc.api.core.exception;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.response.ErrorResponse;
 import com.bithumbsystems.cpc.api.v1.board.exception.BoardException;
+import com.bithumbsystems.cpc.api.v1.guide.exception.NewsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,14 @@ public class ExceptionHandlers {
   @ExceptionHandler(BoardException.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<Mono<?>> serverBoardExceptionHandler(BoardException ex) {
+    log.error(ex.getMessage(), ex);
+    ErrorResponse errorResponse = new ErrorResponse(new ErrorData(ex.getErrorCode()));
+    return ResponseEntity.internalServerError().body(Mono.just(errorResponse));
+  }
+
+  @ExceptionHandler(NewsException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<Mono<?>> serverNewsExceptionHandler(NewsException ex) {
     log.error(ex.getMessage(), ex);
     ErrorResponse errorResponse = new ErrorResponse(new ErrorData(ex.getErrorCode()));
     return ResponseEntity.internalServerError().body(Mono.just(errorResponse));

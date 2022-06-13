@@ -131,7 +131,8 @@ public class BoardService {
    * @return
    */
   public Mono<BoardResponse> getBoardData(Long boardId) {
-    return boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto);
+    return boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto)
+        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
   /**
@@ -157,6 +158,12 @@ public class BoardService {
         .flatMap(board -> {
           board.setTitle(boardRequest.getTitle());
           board.setContents(boardRequest.getContents());
+          board.setIsSetNotice(boardRequest.getIsSetNotice());
+          board.setIsSecret(boardRequest.getIsSecret());
+          board.setPassword(boardRequest.getPassword());
+          board.setAttachFileId(boardRequest.getAttachFileId());
+          board.setTags(boardRequest.getTags());
+          board.setThumbnail(boardRequest.getThumbnail());
           return boardDomainService.updateBoard(board);
         })
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));

@@ -1,4 +1,4 @@
-package com.bithumbsystems.persistence.mongodb.board.model.entity;
+package com.bithumbsystems.persistence.mongodb.guide.entity;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -16,14 +16,13 @@ public class News {
   @Transient
   public static final String SEQUENCE_NAME = "news_sequence";
 
-  @Id
-  private Long id;
-
+  @Id private Long id;
   private String newspaper;
   private String title;
   private String thumbnailUrl;
   private String linkUrl;
   private Date postingDate;
+  private Boolean isUse;
   private LocalDateTime createDate;
   private LocalDateTime updateDate;
 }

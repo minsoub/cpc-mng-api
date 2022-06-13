@@ -10,8 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @Document(collection = "files")
 public class File {
-  @Id
-  private String fileKey;
+  @Id private String fileKey;
   private String fileName;
   private Boolean delYn;
   private LocalDateTime createDate;

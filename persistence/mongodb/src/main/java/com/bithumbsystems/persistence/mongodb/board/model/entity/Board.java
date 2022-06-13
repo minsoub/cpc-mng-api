@@ -17,12 +17,8 @@ public class Board {
   @Transient
   public static final String SEQUENCE_NAME = "boards_sequence";
 
-  @Id
-  private Long id;
-
-  @Indexed
-  private String boardMasterId;
-
+  @Id private Long id;
+  @Indexed private String boardMasterId;
   private String title;
   private String contents;
   private Boolean isReply;

@@ -15,9 +15,7 @@ public class FraudReport {
   @Transient
   public static final String SEQUENCE_NAME = "fraud_sequence";
 
-  @Id
-  private Long id;
-
+  @Id private Long id;
   private String status;
   private String title;
   private String contents;

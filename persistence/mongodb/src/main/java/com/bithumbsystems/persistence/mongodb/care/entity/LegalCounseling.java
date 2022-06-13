@@ -15,9 +15,7 @@ public class LegalCounseling {
   @Transient
   public static final String SEQUENCE_NAME = "counseling_sequence";
 
-  @Id
-  private Long id;
-
+  @Id private Long id;
   private String status;
   private String name;
   private String email;

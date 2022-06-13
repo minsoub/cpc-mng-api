@@ -12,8 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "board_master")
 public class BoardMaster {
 
-  @Id
-  private String id;
+  @Id private String id;
   private String siteId;
   private String name;
   private Boolean isUse;
