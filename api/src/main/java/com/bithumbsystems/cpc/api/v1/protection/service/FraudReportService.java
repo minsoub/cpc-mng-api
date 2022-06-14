@@ -15,10 +15,11 @@ import com.bithumbsystems.persistence.mongodb.protection.model.entity.FraudRepor
 import com.bithumbsystems.persistence.mongodb.protection.service.FraudReportDomainService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -112,7 +112,7 @@ public class FraudReportService {
    */
   public Mono<FraudReport> saveFraudReport(FraudReportRequest fraudReportRequest) {
     FraudReport fraudReport = FraudReportMapper.INSTANCE.toEntity(fraudReportRequest);
-    fraudReport.setStatus(Status.REGISTER.getCode()); // '접수' 상태
+    fraudReport.setStatus(fraudReportRequest.getAnswerToContacts()? Status.REQUEST.getCode() : Status.REGISTER.getCode()); // 연락처로 답변받기 체크 시 '답변요청' 아니면 '접수' 상태
     return fraudReportDomainService.createFraudReport(fraudReport);
   }
 
@@ -130,8 +130,13 @@ public class FraudReportService {
     // String fileName = part.filename();
     log.debug("save => fileKey : " + fileKey);
     Map<String, String> metadata = new HashMap<String, String>();
-    metadata.put("filename", fileName);
-    metadata.put("filesize", String.valueOf(fileSize));
+
+    try {
+      metadata.put("filename", URLEncoder.encode(fileName, "UTF-8"));
+      metadata.put("filesize", String.valueOf(fileSize));
+    } catch (UnsupportedEncodingException e) {
+      return Mono.error(new FraudReportException(ErrorCode.FAIL_SAVE_FILE));
+    }
 
     PutObjectRequest objectRequest = PutObjectRequest.builder()
         .bucket(bucketName)
@@ -211,7 +216,7 @@ public class FraudReportService {
    * @param page
    * @return
    */
-  public Mono<PageSupport<FraudReport>> getFraudReportList(LocalDateTime fromDate, LocalDateTime toDate, String status, String keyword, Pageable page) {
+  public Mono<PageSupport<FraudReport>> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword, Pageable page) {
     return fraudReportDomainService.getFraudReportList(fromDate, toDate, status, keyword)
         .collectList()
         .map(list -> new PageSupport<>(
@@ -246,6 +251,7 @@ public class FraudReportService {
     return fraudReportDomainService.getFraudReportData(id)
         .flatMap(fraudReport -> {
           fraudReport.setAnswer(fraudReportRequest.getAnswer());
+          fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
           return fraudReportDomainService.updateFraudReport(fraudReport)
               .map(FraudReportMapper.INSTANCE::toDto);
         })
@@ -265,8 +271,9 @@ public class FraudReportService {
    * @param keyword 키워드
    * @return
    */
-  public Mono<ByteArrayInputStream> downloadExcel(LocalDateTime fromDate, LocalDateTime toDate, String status, String keyword) {
+  public Mono<ByteArrayInputStream> downloadExcel(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
     return fraudReportDomainService.getFraudReportList(fromDate, toDate, status, keyword)
+        .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
         .flatMap(list -> this.createExcelFile(list));
   }

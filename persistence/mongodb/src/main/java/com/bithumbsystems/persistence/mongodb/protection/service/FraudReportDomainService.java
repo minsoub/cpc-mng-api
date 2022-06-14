@@ -1,11 +1,9 @@
 package com.bithumbsystems.persistence.mongodb.protection.service;
 
-import com.bithumbsystems.persistence.mongodb.guide.entity.News;
 import com.bithumbsystems.persistence.mongodb.protection.model.entity.FraudReport;
 import com.bithumbsystems.persistence.mongodb.protection.repository.FraudReportRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,12 +35,12 @@ public class FraudReportDomainService {
    * @param keyword 키워드
    * @return
    */
-  public Flux<FraudReport> getFraudReportList(LocalDateTime fromDate, LocalDateTime toDate, String status, String keyword) {
-    return fraudReportRepository.findByCondition(fromDate, toDate, Arrays.asList(status), keyword);
+  public Flux<FraudReport> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
+    return fraudReportRepository.findByCondition(fromDate, toDate, status, keyword);
   }
 
   /**
-   * 블록체인 뉴스 조회
+   * 사기 신고 조회
    * @param id ID
    * @return
    */
@@ -52,7 +50,7 @@ public class FraudReportDomainService {
   }
 
   /**
-   * 블록체인 뉴스 수정
+   * 사기 신고 수정
    * @param fraudReport 사기 신고
    * @return
    */

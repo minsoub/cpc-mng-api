@@ -11,19 +11,14 @@ import com.bithumbsystems.cpc.api.v1.protection.model.request.FraudReportRequest
 import com.bithumbsystems.cpc.api.v1.protection.service.FraudReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
@@ -41,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @RestController
@@ -79,16 +72,16 @@ public class FraudReportController {
   @GetMapping
   @Operation(description = "사기 신고 목록 조회")
   public ResponseEntity<Mono<?>> getFraudReportList(
-      @RequestParam(name = "fromDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime toDate,
-      @RequestParam(name = "status") String status,
+      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query,
       @RequestParam(name = "pageNo", defaultValue = FIRST_PAGE_NUM) int pageNo,
       @RequestParam(name = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(fromDate, toDate, status, keyword, PageRequest.of(pageNo, pageSize))
+    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(fromDate, toDate.plusDays(1), status, keyword, PageRequest.of(pageNo, pageSize))
         .map(response -> new SingleResponse(response)));
   }
 
@@ -154,15 +147,15 @@ public class FraudReportController {
    */
   @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
   public Mono<ResponseEntity<?>> downloadExcel(
-      @RequestParam(name = "fromDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime toDate,
-      @RequestParam(name = "status") String status,
+      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
 
     String fileName = URLEncoder.encode("사기신고_다운로드.xlsx", "UTF-8");
 
-    return fraudReportService.downloadExcel(fromDate, toDate, status, query)
+    return fraudReportService.downloadExcel(fromDate, toDate.plusDays(1), status, query)
         .log()
         .flatMap(inputStream -> {
           HttpHeaders headers = new HttpHeaders();

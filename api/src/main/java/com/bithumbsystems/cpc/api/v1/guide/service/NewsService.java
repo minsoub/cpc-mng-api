@@ -6,9 +6,9 @@ import com.bithumbsystems.cpc.api.v1.guide.exception.NewsException;
 import com.bithumbsystems.cpc.api.v1.guide.mapper.NewsMapper;
 import com.bithumbsystems.cpc.api.v1.guide.model.request.NewsRequest;
 import com.bithumbsystems.cpc.api.v1.guide.model.response.NewsResponse;
-import com.bithumbsystems.persistence.mongodb.guide.entity.News;
+import com.bithumbsystems.persistence.mongodb.guide.model.entity.News;
 import com.bithumbsystems.persistence.mongodb.guide.service.NewsDomainService;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class NewsService {
    * @param page
    * @return
    */
-  public Mono<PageSupport<News>> getNewsList(LocalDateTime fromDate, LocalDateTime toDate, String keyword, Pageable page) {
+  public Mono<PageSupport<News>> getNewsList(LocalDate fromDate, LocalDate toDate, String keyword, Pageable page) {
     return newsDomainService.getNewsList(fromDate, toDate, keyword)
         .collectList()
         .map(list -> new PageSupport<>(

@@ -1,4 +1,4 @@
-package com.bithumbsystems.persistence.mongodb.care.entity;
+package com.bithumbsystems.persistence.mongodb.care.model.entity;
 
 import java.time.LocalDateTime;
 import lombok.Builder;
@@ -19,11 +19,13 @@ public class LegalCounseling {
   private String status;
   private String name;
   private String email;
+  private String contents;
   private String cellPhone;
-  private Boolean answerToContacts;
-  private Boolean termsPrivacy;
-  private String answer;
   private String attachFileId;
+  private Boolean servicePrivacy;
+  private Boolean termsPrivacy;
+  private Boolean answerToContacts;
+  private String answer;
   private LocalDateTime createDate;
   private LocalDateTime updateDate;
 }

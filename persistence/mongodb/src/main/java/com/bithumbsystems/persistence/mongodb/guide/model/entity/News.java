@@ -1,4 +1,4 @@
-package com.bithumbsystems.persistence.mongodb.guide.entity;
+package com.bithumbsystems.persistence.mongodb.guide.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.Date;

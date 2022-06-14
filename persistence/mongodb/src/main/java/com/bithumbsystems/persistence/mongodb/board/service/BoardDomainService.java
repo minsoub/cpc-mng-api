@@ -4,6 +4,7 @@ import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
 import com.bithumbsystems.persistence.mongodb.board.repository.BoardMasterRepository;
 import com.bithumbsystems.persistence.mongodb.board.repository.BoardRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +99,7 @@ public class BoardDomainService {
    * @param keyword 키워드
    * @return
    */
-  public Flux<Board> getBoardsForMain(String boardMasterId, LocalDateTime fromDate, LocalDateTime toDate, String keyword) {
+  public Flux<Board> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
     Boolean isUse = true;
     return boardRepository.findByConditionForMain(boardMasterId, fromDate, toDate, isUse, keyword);
   }

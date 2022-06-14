@@ -1,9 +1,6 @@
 package com.bithumbsystems.persistence.mongodb.protection.model.entity;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;

@@ -8,12 +8,11 @@ import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
 import com.bithumbsystems.cpc.api.v1.main.model.response.MainContentsResponse;
 import com.bithumbsystems.cpc.api.v1.main.service.MainContentsService;
-import com.bithumbsystems.persistence.mongodb.main.model.entity.MainContents;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -89,8 +88,8 @@ public class MainContentsController {
   @GetMapping("/{boardMasterId}")
   @Operation(description = "메인 화면 컨텐츠용 게시글 조회")
   public ResponseEntity<Mono<?>> getBoardsForMain(@PathVariable String boardMasterId,
-      @RequestParam(name = "fromDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime toDate,
+      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
       @RequestParam(name = "query", required = false, defaultValue = "") String query,
       @RequestParam(name = "pageNo", defaultValue = FIRST_PAGE_NUM) int pageNo,
       @RequestParam(name = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
@@ -99,7 +98,7 @@ public class MainContentsController {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
 
-    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate, keyword, PageRequest.of(pageNo, pageSize))
+    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize))
         .map(response -> new SingleResponse(response)));
   }
 

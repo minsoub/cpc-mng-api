@@ -1,7 +1,8 @@
 package com.bithumbsystems.cpc.api.v1.care.mapper;
 
 import com.bithumbsystems.cpc.api.v1.care.model.request.LegalCounselingRequest;
-import com.bithumbsystems.persistence.mongodb.care.entity.LegalCounseling;
+import com.bithumbsystems.cpc.api.v1.care.model.response.LegalCounselingResponse;
+import com.bithumbsystems.persistence.mongodb.care.model.entity.LegalCounseling;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -17,4 +18,6 @@ public interface LegalCounselingMapper {
   @Mapping(target = "createDate", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
   LegalCounseling toEntity(LegalCounselingRequest legalCounselingRequest);
+
+  LegalCounselingResponse toDto(LegalCounseling legalCounseling);
 }

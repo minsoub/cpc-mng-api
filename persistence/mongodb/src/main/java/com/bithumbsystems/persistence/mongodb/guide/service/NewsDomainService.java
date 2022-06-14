@@ -1,7 +1,8 @@
 package com.bithumbsystems.persistence.mongodb.guide.service;
 
-import com.bithumbsystems.persistence.mongodb.guide.entity.News;
+import com.bithumbsystems.persistence.mongodb.guide.model.entity.News;
 import com.bithumbsystems.persistence.mongodb.guide.repository.NewsRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class NewsDomainService {
    * @param keyword 키워드
    * @return
    */
-  public Flux<News> getNewsList(LocalDateTime fromDate, LocalDateTime toDate, String keyword) {
+  public Flux<News> getNewsList(LocalDate fromDate, LocalDate toDate, String keyword) {
     Boolean isUse = true;
     return newsRepository.findByCondition(fromDate, toDate, isUse, keyword);
   }

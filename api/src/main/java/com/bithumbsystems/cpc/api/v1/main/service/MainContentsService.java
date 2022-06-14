@@ -9,13 +9,11 @@ import com.bithumbsystems.cpc.api.v1.main.exception.MainContentsException;
 import com.bithumbsystems.cpc.api.v1.main.mapper.MainContentsMapper;
 import com.bithumbsystems.cpc.api.v1.main.model.enums.BulletinBoardType;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
-import com.bithumbsystems.cpc.api.v1.main.model.response.MainContentsResponse;
-import com.bithumbsystems.cpc.api.v1.main.model.response.SelectedBoardResponse;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.service.BoardDomainService;
 import com.bithumbsystems.persistence.mongodb.main.model.entity.MainContents;
 import com.bithumbsystems.persistence.mongodb.main.service.MainContentsDomainService;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,11 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @Service
@@ -125,7 +120,7 @@ public class MainContentsService {
    * @param page
    * @return
    */
-  public Mono<PageSupport<Board>> getBoardsForMain(String boardMasterId, LocalDateTime fromDate, LocalDateTime toDate, String keyword, Pageable page) {
+  public Mono<PageSupport<Board>> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, Pageable page) {
     return boardDomainService.getBoardsForMain(boardMasterId, fromDate, toDate, keyword)
         .collectList()
         .map(list -> new PageSupport<>(

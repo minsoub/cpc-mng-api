@@ -1,6 +1,6 @@
-package com.bithumbsystems.persistence.mongodb.guide.entity.sequence;
+package com.bithumbsystems.persistence.mongodb.care.model.entity.sequence;
 
-import com.bithumbsystems.persistence.mongodb.guide.entity.News;
+import com.bithumbsystems.persistence.mongodb.care.model.entity.LegalCounseling;
 import com.bithumbsystems.persistence.mongodb.common.service.ISequenceGeneratorService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -12,20 +12,20 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class NewsModelListener extends AbstractMongoEventListener<News> {
+public class LegalCounselingModelListener extends AbstractMongoEventListener<LegalCounseling> {
 
   private ISequenceGeneratorService sequenceGenerator;
 
   @Autowired
-  public NewsModelListener(ISequenceGeneratorService sequenceGenerator) {
+  public LegalCounselingModelListener(ISequenceGeneratorService sequenceGenerator) {
     this.sequenceGenerator = sequenceGenerator;
   }
 
   @Override
-  public void onBeforeConvert(BeforeConvertEvent<News> event) {
+  public void onBeforeConvert(BeforeConvertEvent<LegalCounseling> event) {
     try {
       if (event.getSource().getId() == null) {
-        event.getSource().setId(sequenceGenerator.generateSequence(News.SEQUENCE_NAME));
+        event.getSource().setId(sequenceGenerator.generateSequence(LegalCounseling.SEQUENCE_NAME));
       }
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       log.error("Error:{}", e.getMessage());
