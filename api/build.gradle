@@ -18,7 +18,6 @@ dependencies {
 
     implementation 'commons-io:commons-io:2.11.0'
     implementation('org.mapstruct:mapstruct:1.4.2.Final')
-    implementation 'org.jetbrains:annotations:20.1.0'
     annotationProcessor('org.mapstruct:mapstruct-processor:1.4.2.Final')
 
     implementation 'org.apache.poi:poi:5.2.2'

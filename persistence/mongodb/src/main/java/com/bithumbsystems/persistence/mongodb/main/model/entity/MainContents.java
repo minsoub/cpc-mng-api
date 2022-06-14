@@ -9,7 +9,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -30,5 +29,4 @@ public class MainContents {
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;
   @LastModifiedBy private String updateAccountId;
-  @Version private Integer version;
 }

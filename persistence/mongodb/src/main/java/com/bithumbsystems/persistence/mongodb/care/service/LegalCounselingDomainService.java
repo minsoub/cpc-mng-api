@@ -24,7 +24,7 @@ public class LegalCounselingDomainService {
    */
   public Mono<LegalCounseling> createLegalCounseling(LegalCounseling legalCounseling) {
     legalCounseling.setCreateDate(LocalDateTime.now());
-    return legalCounselingRepository.save(legalCounseling);
+    return legalCounselingRepository.insert(legalCounseling);
   }
 
   /**

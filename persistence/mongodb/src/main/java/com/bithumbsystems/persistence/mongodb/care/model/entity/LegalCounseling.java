@@ -3,7 +3,11 @@ package com.bithumbsystems.persistence.mongodb.care.model.entity;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,6 +30,8 @@ public class LegalCounseling {
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
-  private LocalDateTime createDate;
-  private LocalDateTime updateDate;
+  @CreatedDate private LocalDateTime createDate;
+  @CreatedBy private String createAccountId;
+  @LastModifiedDate private LocalDateTime updateDate;
+  @LastModifiedBy private String updateAccountId;
 }

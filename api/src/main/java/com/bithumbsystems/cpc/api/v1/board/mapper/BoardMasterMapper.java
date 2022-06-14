@@ -23,7 +23,10 @@ public interface BoardMasterMapper {
   @Mapping(target = "siteName", ignore = true) //TODO: 사이트명 변환 필요
   BoardMasterListResponse toDtoForList(BoardMaster boardMaster);
 
+
   @Mapping(target = "createDate", ignore = true)
+  @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
+  @Mapping(target = "updateAccountId", ignore = true)
   BoardMaster toEntity(BoardMasterRequest boardMasterRequest, List<Category> categories, Sns snsShare, Auth auth);
 }

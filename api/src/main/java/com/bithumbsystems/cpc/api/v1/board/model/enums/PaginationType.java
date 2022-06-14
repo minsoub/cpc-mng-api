@@ -3,7 +3,6 @@ package com.bithumbsystems.cpc.api.v1.board.model.enums;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 
 @Getter
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public enum PaginationType implements EnumMapperType {
     return name();
   }
 
-  public static @Nullable String getTitle(String code) {
+  public static String getTitle(String code) {
     for (PaginationType paginationType : PaginationType.values()) {
       if (code.equals(paginationType.getCode())) {
         return paginationType.getTitle();

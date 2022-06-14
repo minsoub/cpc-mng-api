@@ -15,6 +15,8 @@ public interface BoardMapper {
   BoardResponse toDto(Board board);
 
   @Mapping(target = "createDate", ignore = true)
+  @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
+  @Mapping(target = "updateAccountId", ignore = true)
   Board toEntity(BoardRequest boardRequest);
 }

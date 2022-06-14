@@ -4,7 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -28,6 +32,10 @@ public class BoardMaster {
   private List<String> tags;
   private Sns snsShare;
   private Auth auth;
+  @CreatedDate private LocalDateTime createDate;
+  @CreatedBy private String createAccountId;
+  @LastModifiedDate private LocalDateTime updateDate;
+  @LastModifiedBy private String updateAccountId;
 
   @Data
   public static class Category {
@@ -50,7 +58,4 @@ public class BoardMaster {
     private String write;
     private String comment;
   }
-
-  private LocalDateTime createDate;
-  private LocalDateTime updateDate;
 }

@@ -3,7 +3,6 @@ package com.bithumbsystems.cpc.api.v1.main.model.enums;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 
 @Getter
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public enum BulletinBoardType implements EnumMapperType {
     return name();
   }
 
-  public static @Nullable String getTitle(String code) {
+  public static String getTitle(String code) {
     for (BulletinBoardType bulletinBoardType : BulletinBoardType.values()) {
       if (code.equals(bulletinBoardType.getCode())) {
         return bulletinBoardType.getTitle();
