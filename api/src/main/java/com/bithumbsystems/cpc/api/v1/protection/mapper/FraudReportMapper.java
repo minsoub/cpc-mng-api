@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.protection.mapper;
 
 import com.bithumbsystems.cpc.api.v1.protection.model.request.FraudReportRequest;
+import com.bithumbsystems.cpc.api.v1.protection.model.response.FraudReportResponse;
 import com.bithumbsystems.persistence.mongodb.protection.model.entity.FraudReport;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,4 +18,6 @@ public interface FraudReportMapper {
   @Mapping(target = "createDate", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
   FraudReport toEntity(FraudReportRequest fraudReportRequest);
+
+  FraudReportResponse toDto(FraudReport fraudReport);
 }

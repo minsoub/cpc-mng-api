@@ -13,7 +13,8 @@ public enum ErrorCode {
   FAIL_UPDATE_CONTENT("F005","cannot update content"),
   FAIL_CREATE_CONTENT("F006","cannot create content"),
   FAIL_DELETE_CONTENT("F007","cannot delete content"),
-  DUPLICATE_KEY_ERROR("F008", "duplicate key error");
+  DUPLICATE_KEY_ERROR("F008", "duplicate key error"),
+  EXCEL_DOWNLOAD_ERROR("F009", "excel download error");
 
   private final String code;
   private final String message;

@@ -1,5 +1,10 @@
 package com.bithumbsystems.cpc.api.core.util;
 
-public class DateUtil {
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+public class DateUtil {
+  public static String toString(LocalDateTime localDateTime) {
+    return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+  }
 }

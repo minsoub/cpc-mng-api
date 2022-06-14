@@ -17,5 +17,6 @@ public interface MainContentsMapper {
   @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
   @Mapping(target = "updateAccountId", ignore = true)
+  @Mapping(target = "version", ignore = true)
   MainContents toEntity(MainContentsRequest mainContentsRequest);
 }
