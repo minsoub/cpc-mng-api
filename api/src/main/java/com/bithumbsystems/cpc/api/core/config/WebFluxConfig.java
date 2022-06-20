@@ -32,7 +32,6 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 public class WebFluxConfig implements WebFluxConfigurer {
 
   private final ApplicationProperties applicationProperties;
-  private final Long MAX_AGE_SECS = 3600L;
 
   @Override
   public void configurePathMatching(PathMatchConfigurer configurer) {
@@ -70,15 +69,5 @@ public class WebFluxConfig implements WebFluxConfigurer {
   @Bean
   public ModelResolver modelResolver(ObjectMapper objectMapper) {
     return new ModelResolver(objectMapper);
-  }
-
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/**")
-        .allowedOrigins("http://localhost:3000")
-        .allowedHeaders("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-        .allowedHeaders("*")
-        .allowCredentials(true)
-        .maxAge(MAX_AGE_SECS);
   }
 }
