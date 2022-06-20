@@ -15,11 +15,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection = "boards")
+@Document(collection = "cpc_boards")
 public class Board {
 
   @Transient
-  public static final String SEQUENCE_NAME = "boards_sequence";
+  public static final String SEQUENCE_NAME = "cpc_boards_sequence";
 
   @Id private Long id;
   @Indexed private String boardMasterId;

@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class FraudReport {
 
   @Transient
-  public static final String SEQUENCE_NAME = "fraud_sequence";
+  public static final String SEQUENCE_NAME = "cpc_fraud_sequence";
 
   @Id private Long id;
   private String status;

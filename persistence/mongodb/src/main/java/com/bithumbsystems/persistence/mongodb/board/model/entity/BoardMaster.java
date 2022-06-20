@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection = "board_master")
+@Document(collection = "cpc_board_master")
 public class BoardMaster {
 
   @Id private String id;

@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class LegalCounseling {
 
   @Transient
-  public static final String SEQUENCE_NAME = "counseling_sequence";
+  public static final String SEQUENCE_NAME = "cpc_counseling_sequence";
 
   @Id private Long id;
   private String status;

@@ -13,5 +13,6 @@ public class ApplicationProperties {
 
   private String version;
   private String prefix;
+  private String project;
   private String[] excludePrefixPath;
 }

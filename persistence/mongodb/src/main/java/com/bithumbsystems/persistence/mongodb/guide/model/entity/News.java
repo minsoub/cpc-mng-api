@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class News {
 
   @Transient
-  public static final String SEQUENCE_NAME = "news_sequence";
+  public static final String SEQUENCE_NAME = "cpc_news_sequence";
 
   @Id private Long id;
   private String newspaper;
