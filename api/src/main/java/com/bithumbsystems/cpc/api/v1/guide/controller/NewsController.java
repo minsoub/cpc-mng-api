@@ -1,7 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.guide.controller;
 
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.FIRST_PAGE_NUM;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.guide.model.request.NewsRequest;
@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class NewsController {
   @Operation(description = "블록체인 뉴스 등록")
   public ResponseEntity<Mono<?>> createNews(@RequestBody NewsRequest newsRequest) {
     return ResponseEntity.ok().body(newsService.createNews(newsRequest)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**
@@ -57,16 +58,16 @@ public class NewsController {
   @GetMapping
   @Operation(description = "블록체인 뉴스 목록 조회")
   public ResponseEntity<Mono<?>> getNewsList(
-      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
       @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "pageNo", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
+      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(newsService.getNewsList(fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize))
-        .map(response -> new SingleResponse(response)));
+    return ResponseEntity.ok().body(newsService.getNewsList(fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
+        .map(SingleResponse::new));
   }
 
   /**
@@ -78,7 +79,7 @@ public class NewsController {
   @Operation(description = "블록체인 뉴스 조회")
   public ResponseEntity<Mono<?>> getNewsData(@PathVariable Long id) {
     return ResponseEntity.ok().body(newsService.getNewsData(id)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**
@@ -90,7 +91,7 @@ public class NewsController {
   @Operation(description = "블록체인 뉴스 수정")
   public ResponseEntity<Mono<?>> updateNews(@RequestBody NewsRequest newsRequest) {
     return ResponseEntity.ok().body(newsService.updateNews(newsRequest)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**

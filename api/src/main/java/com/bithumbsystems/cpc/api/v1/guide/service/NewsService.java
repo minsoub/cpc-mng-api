@@ -1,7 +1,6 @@
 package com.bithumbsystems.cpc.api.v1.guide.service;
 
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
-import com.bithumbsystems.cpc.api.core.util.PageSupport;
 import com.bithumbsystems.cpc.api.v1.guide.exception.NewsException;
 import com.bithumbsystems.cpc.api.v1.guide.mapper.NewsMapper;
 import com.bithumbsystems.cpc.api.v1.guide.model.request.NewsRequest;
@@ -9,11 +8,11 @@ import com.bithumbsystems.cpc.api.v1.guide.model.response.NewsResponse;
 import com.bithumbsystems.persistence.mongodb.guide.model.entity.News;
 import com.bithumbsystems.persistence.mongodb.guide.service.NewsDomainService;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -40,22 +39,15 @@ public class NewsService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
-   * @param page
+   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<PageSupport<News>> getNewsList(LocalDate fromDate, LocalDate toDate, String keyword, Pageable page) {
-    return newsDomainService.getNewsList(fromDate, toDate, keyword)
+  public Mono<Page<News>> getNewsList(LocalDate fromDate, LocalDate toDate, String keyword, PageRequest pageRequest) {
+    return newsDomainService.findPageBySearchText(fromDate, toDate, keyword, pageRequest)
         .collectList()
-        .map(list -> new PageSupport<>(
-            list
-                .stream()
-                .sorted(Comparator
-                    .comparingLong(News::getId)
-                    .reversed())
-                .skip((page.getPageNumber() - 1) * page.getPageSize())
-                .limit(page.getPageSize())
-                .collect(Collectors.toList()),
-            page.getPageNumber(), page.getPageSize(), list.size()));
+        .zipWith(newsDomainService.countBySearchText(fromDate, toDate, keyword)
+            .map(c -> c))
+        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
   }
 
   /**

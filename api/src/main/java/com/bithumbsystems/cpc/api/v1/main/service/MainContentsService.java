@@ -2,7 +2,6 @@ package com.bithumbsystems.cpc.api.v1.main.service;
 
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
-import com.bithumbsystems.cpc.api.core.util.PageSupport;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
 import com.bithumbsystems.cpc.api.v1.main.exception.MainContentsException;
@@ -20,6 +19,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -117,22 +119,15 @@ public class MainContentsService {
    * @param fromDate 시작 일자
    * @param toDate 종료 일자
    * @param keyword 키워드
-   * @param page
+   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<PageSupport<Board>> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, Pageable page) {
-    return boardDomainService.getBoardsForMain(boardMasterId, fromDate, toDate, keyword)
+  public Mono<Page<Board>> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, PageRequest pageRequest) {
+    return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword, pageRequest)
         .collectList()
-        .map(list -> new PageSupport<>(
-            list
-                .stream()
-                .sorted(Comparator
-                    .comparingLong(Board::getId)
-                    .reversed())
-                .skip((page.getPageNumber() - 1) * page.getPageSize())
-                .limit(page.getPageSize())
-                .collect(Collectors.toList()),
-            page.getPageNumber(), page.getPageSize(), list.size()));
+        .zipWith(boardDomainService.countBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
+            .map(c -> c))
+        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
   }
 
   /**

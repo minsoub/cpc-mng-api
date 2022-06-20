@@ -2,12 +2,14 @@ package com.bithumbsystems.persistence.mongodb.board.service;
 
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
+import com.bithumbsystems.persistence.mongodb.board.repository.BoardCustomRepository;
 import com.bithumbsystems.persistence.mongodb.board.repository.BoardMasterRepository;
 import com.bithumbsystems.persistence.mongodb.board.repository.BoardRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,6 +21,7 @@ public class BoardDomainService {
 
   private final BoardMasterRepository boardMasterRepository;
   private final BoardRepository boardRepository;
+  private final BoardCustomRepository boardCustomRepository;
 
   /**
    * 게시판 마스터 등록
@@ -84,11 +87,21 @@ public class BoardDomainService {
    * 게시글 목록 조회
    * @param boardMasterId 게시판 ID
    * @param keyword 키워드
+   * @param pageable 페이지 정보
    * @return
    */
-  public Flux<Board> getBoards(String boardMasterId, String keyword) {
-    Boolean isUse = true;
-    return boardRepository.findByCondition(boardMasterId, isUse, keyword);
+  public Flux<Board> findPageBySearchText(String boardMasterId, String keyword, Pageable pageable) {
+    return boardCustomRepository.findPageBySearchText(boardMasterId, keyword, pageable);
+  }
+
+  /**
+   * 게시글 목록 건수 조회
+   * @param boardMasterId 게시판 ID
+   * @param keyword 키워드
+   * @return
+   */
+  public Mono<Long> countBySearchText(String boardMasterId, String keyword) {
+    return boardCustomRepository.countBySearchText(boardMasterId, keyword);
   }
 
   /**
@@ -97,11 +110,23 @@ public class BoardDomainService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
+   * @param pageable 페이지 정보
    * @return
    */
-  public Flux<Board> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
-    Boolean isUse = true;
-    return boardRepository.findByConditionForMain(boardMasterId, fromDate, toDate, isUse, keyword);
+  public Flux<Board> findPageBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, Pageable pageable) {
+    return boardCustomRepository.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword, pageable);
+  }
+
+  /**
+   * 메인 컨텐츠 설정용 게시글 목록 건수 조회
+   * @param boardMasterId 게시판 ID
+   * @param fromDate 검색 시작일자
+   * @param toDate 검색 종료일자
+   * @param keyword 키워드
+   * @return
+   */
+  public Mono<Long> countBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
+    return boardCustomRepository.countBySearchTextForMain(boardMasterId, fromDate, toDate, keyword);
   }
 
   /**

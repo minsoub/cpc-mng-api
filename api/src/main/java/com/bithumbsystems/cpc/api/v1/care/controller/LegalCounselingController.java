@@ -1,7 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.care.controller;
 
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.FIRST_PAGE_NUM;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.CacheControl;
@@ -72,17 +73,17 @@ public class LegalCounselingController {
   @GetMapping
   @Operation(description = "법률 상담 신청 목록 조회")
   public ResponseEntity<Mono<?>> getLegalCounselingList(
-      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
       @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "pageNo", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
+      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingList(fromDate, toDate.plusDays(1), status, keyword, PageRequest.of(pageNo, pageSize))
-        .map(response -> new SingleResponse(response)));
+    return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingList(fromDate, toDate.plusDays(1), status, keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
+        .map(SingleResponse::new));
   }
 
   /**
@@ -94,7 +95,7 @@ public class LegalCounselingController {
   @Operation(description = "법률 상담 신청 정보 조회")
   public ResponseEntity<Mono<?>> getLegalCounselingData(@PathVariable Long id) {
     return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingData(id)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**
@@ -106,7 +107,7 @@ public class LegalCounselingController {
   @Operation(description = "법률 상담 신청 답변")
   public ResponseEntity<Mono<?>> updateLegalCounseling(@RequestBody LegalCounselingRequest fraudReportRequest) {
     return ResponseEntity.ok().body(legalCounselingService.updateLegalCounseling(fraudReportRequest)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**

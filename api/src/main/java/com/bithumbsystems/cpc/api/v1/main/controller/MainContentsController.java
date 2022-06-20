@@ -1,7 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.main.controller;
 
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.util.PageSupport.FIRST_PAGE_NUM;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
+import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class MainContentsController {
   public ResponseEntity<Mono<?>> getBulletinBoardTypes() {
     return ResponseEntity.ok().body(mainContentsService.getBulletinBoardTypes()
         .collectList()
-        .map(list -> new MultiResponse(list)));
+        .map(MultiResponse::new));
   }
 
   /**
@@ -72,7 +73,7 @@ public class MainContentsController {
             .investmentGuide3Id(tuple.getT1().getInvestmentGuide3Id())
             .investmentGuide3(tuple.getT6())
             .build()))
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**
@@ -88,18 +89,18 @@ public class MainContentsController {
   @GetMapping("/{boardMasterId}")
   @Operation(description = "메인 화면 컨텐츠용 게시글 조회")
   public ResponseEntity<Mono<?>> getBoardsForMain(@PathVariable String boardMasterId,
-      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
       @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "pageNo", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
+      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
       throws UnsupportedEncodingException {
 
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
 
-    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize))
-        .map(response -> new SingleResponse(response)));
+    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
+        .map(SingleResponse::new));
   }
 
   /**
@@ -111,7 +112,7 @@ public class MainContentsController {
   @Operation(description = "선택된 게시글 저장")
   public ResponseEntity<Mono<?>> saveMainContents(@RequestBody MainContentsRequest mainContentsRequest) {
     return ResponseEntity.ok().body(mainContentsService.saveMainContents(mainContentsRequest)
-        .map(response -> new SingleResponse(response)));
+        .map(SingleResponse::new));
   }
 
   /**
@@ -123,7 +124,7 @@ public class MainContentsController {
   @Operation(description = "선택된 게시글 조회")
   public ResponseEntity<Mono<?>> getSelectedBoards(@RequestParam(value = "classification") String classification) {
     return ResponseEntity.ok().body(mainContentsService.getSelectedBoards(classification)
-        .map(list -> new MultiResponse(list))
+        .map(MultiResponse::new)
     );
   }
 }

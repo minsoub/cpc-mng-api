@@ -3,7 +3,6 @@ package com.bithumbsystems.cpc.api.v1.protection.service;
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.util.DateUtil;
-import com.bithumbsystems.cpc.api.core.util.PageSupport;
 import com.bithumbsystems.cpc.api.v1.protection.exception.FraudReportException;
 import com.bithumbsystems.cpc.api.v1.protection.mapper.FraudReportMapper;
 import com.bithumbsystems.cpc.api.v1.protection.model.enums.Status;
@@ -20,13 +19,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +39,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -213,22 +212,15 @@ public class FraudReportService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
-   * @param page
+   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<PageSupport<FraudReport>> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword, Pageable page) {
-    return fraudReportDomainService.getFraudReportList(fromDate, toDate, status, keyword)
+  public Mono<Page<FraudReport>> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword, PageRequest pageRequest) {
+    return fraudReportDomainService.findPageBySearchText(fromDate, toDate, status, keyword, pageRequest)
         .collectList()
-        .map(list -> new PageSupport<>(
-            list
-                .stream()
-                .sorted(Comparator
-                    .comparingLong(FraudReport::getId)
-                    .reversed())
-                .skip((page.getPageNumber() - 1) * page.getPageSize())
-                .limit(page.getPageSize())
-                .collect(Collectors.toList()),
-            page.getPageNumber(), page.getPageSize(), list.size()));
+        .zipWith(fraudReportDomainService.countBySearchText(fromDate, toDate, status, keyword)
+            .map(c -> c))
+        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
   }
 
   /**
