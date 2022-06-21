@@ -1,6 +1,13 @@
 package com.bithumbsystems.cpc.api.core.config;
 
-import com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_NAME;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_PASSWORD;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_PORT;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_URL;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_USER;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.KMS_ALIAS_NAME;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.MAIL_SENDER;
+
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.property.MongoProperties;
 import javax.annotation.PostConstruct;
@@ -25,6 +32,8 @@ public class ParameterStoreConfig {
 
     private final AwsProperties awsProperties;
 
+    private final AwsConfig awsConfig;
+
     @Value("${cloud.aws.credentials.profile-name}")
     private String profileName;
 
@@ -32,25 +41,29 @@ public class ParameterStoreConfig {
     public void init() {
 
         log.debug("config store [prefix] => {}", awsProperties.getPrefix());
-        log.debug("config store [name] => {}", awsProperties.getParamStoreName());
+        log.debug("config store [name] => {}", awsProperties.getParamStoreDocName());
 
         this.ssmClient = SsmClient.builder()
             .region(Region.of(awsProperties.getRegion()))
             .build();
 
         this.mongoProperties = new MongoProperties(
-            getParameterValue(ParameterStoreConstant.DB_URL),
-            getParameterValue(ParameterStoreConstant.USER),
-            getParameterValue(ParameterStoreConstant.PASSWORD),
-            getParameterValue(ParameterStoreConstant.PORT),
-            getParameterValue(ParameterStoreConstant.DB_NAME)
+            getParameterValue(awsProperties.getParamStoreDocName(), DB_URL),
+            getParameterValue(awsProperties.getParamStoreDocName(), DB_USER),
+            getParameterValue(awsProperties.getParamStoreDocName(), DB_PASSWORD),
+            getParameterValue(awsProperties.getParamStoreDocName(), DB_PORT),
+            getParameterValue(awsProperties.getParamStoreDocName(), DB_NAME)
         );
+
+        // KMS Parameter Key
+        this.awsProperties.setKmsKey(getParameterValue(awsProperties.getParamStoreKmsName(), KMS_ALIAS_NAME));
+        this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
     }
 
-    protected String getParameterValue(String type) {
-        String parameterName = String.format("%s/%s_%s/%s", awsProperties.getPrefix(), awsProperties.getParamStoreName(), profileName, type);
+    protected String getParameterValue(String storeName, String type) {
+        String parameterName = String.format("%s/%s_%s/%s", awsProperties.getPrefix(), storeName, profileName, type);
 
-        software.amazon.awssdk.services.ssm.model.GetParameterRequest request = GetParameterRequest.builder()
+        GetParameterRequest request = GetParameterRequest.builder()
             .name(parameterName)
             .withDecryption(true)
             .build();

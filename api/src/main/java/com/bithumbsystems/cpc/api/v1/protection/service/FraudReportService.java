@@ -1,8 +1,13 @@
 package com.bithumbsystems.cpc.api.v1.protection.service;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
+import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
 import com.bithumbsystems.cpc.api.core.util.DateUtil;
+import com.bithumbsystems.cpc.api.core.util.FileUtil;
+import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
+import com.bithumbsystems.cpc.api.core.util.message.MessageService;
 import com.bithumbsystems.cpc.api.v1.protection.exception.FraudReportException;
 import com.bithumbsystems.cpc.api.v1.protection.mapper.FraudReportMapper;
 import com.bithumbsystems.cpc.api.v1.protection.model.enums.Status;
@@ -14,9 +19,11 @@ import com.bithumbsystems.persistence.mongodb.protection.model.entity.FraudRepor
 import com.bithumbsystems.persistence.mongodb.protection.service.FraudReportDomainService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.List;
+import javax.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +57,8 @@ public class FraudReportService {
   private final FraudReportDomainService fraudReportDomainService;
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
+
+  private final MessageService messageService;
 
   /**
    * 파일 정보 조회
@@ -126,6 +135,7 @@ public class FraudReportService {
   public Mono<FraudReportResponse> updateFraudReport(FraudReportRequest fraudReportRequest) {
     Long id = fraudReportRequest.getId();
     return fraudReportDomainService.getFraudReportData(id)
+        .log()
         .flatMap(fraudReport -> {
           fraudReport.setAnswer(fraudReportRequest.getAnswer());
           fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
@@ -135,8 +145,7 @@ public class FraudReportService {
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(fraudReportResponse -> {
           if (fraudReportResponse.getAnswerToContacts()) {
-            // TODO: 메일 발송
-            log.debug("TODO: 메일 발송");
+            sendMail(fraudReportResponse.getEmail(), fraudReportResponse.getAnswer());
           }
         });
   }
@@ -219,5 +228,28 @@ public class FraudReportService {
       return new ByteArrayInputStream(out.toByteArray());
     })
     .log();
+  }
+
+  /**
+   * 메일 발송
+   * @param email
+   */
+  private void sendMail(String email, String contents) {
+    try {
+      String html = FileUtil.readResourceFile(MailForm.FRAUD_REPORT.getPath())
+          .replace("${{subject}}", MailForm.FRAUD_REPORT.getSubject())
+          .replace("${{contents}}", contents);
+      log.info("send mail: " + html);
+
+      messageService.send(
+          MailSenderInfo.builder()
+              .bodyHTML(html)
+              .subject(MailForm.FRAUD_REPORT.getSubject())
+              .emailAddress(email)
+              .build()
+      );
+    } catch (MessagingException | IOException e) {
+      throw new MailException(ErrorCode.FAIL_SEND_MAIL);
+    }
   }
 }

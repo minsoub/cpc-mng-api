@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class FraudReportResponse {
   private Long id;
   private String status;
+  private String email;
   private String title;
   private String contents;
   private Boolean termsPrivacy;

@@ -73,7 +73,6 @@ public class FraudReportDomainService {
    * @return
    */
   public Mono<FraudReport> getFraudReportData(Long id) {
-    Boolean isUse = true;
     return fraudReportRepository.findById(id);
   }
 

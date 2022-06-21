@@ -1,7 +1,12 @@
 package com.bithumbsystems.cpc.api.v1.care.service;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
+import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
+import com.bithumbsystems.cpc.api.core.util.FileUtil;
+import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
+import com.bithumbsystems.cpc.api.core.util.message.MessageService;
 import com.bithumbsystems.cpc.api.v1.care.exception.LegalCounselingException;
 import com.bithumbsystems.cpc.api.v1.care.mapper.LegalCounselingMapper;
 import com.bithumbsystems.cpc.api.v1.care.model.enums.Status;
@@ -13,9 +18,11 @@ import com.bithumbsystems.persistence.mongodb.common.model.entity.File;
 import com.bithumbsystems.persistence.mongodb.common.service.FileDomainService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.List;
+import javax.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -48,6 +55,8 @@ public class LegalCounselingService {
   private final LegalCounselingDomainService legalCounselingDomainService;
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
+
+  private final MessageService messageService;
 
   /**
    * 파일 정보 조회
@@ -133,8 +142,7 @@ public class LegalCounselingService {
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(legalCounselingResponse -> {
           if (legalCounselingResponse.getAnswerToContacts()) {
-            // TODO: 메일 발송
-            log.debug("TODO: 메일 발송");
+            sendMail(legalCounselingResponse.getEmail(), legalCounselingResponse.getAnswer());
           }
         });
   }
@@ -215,5 +223,30 @@ public class LegalCounselingService {
           return new ByteArrayInputStream(out.toByteArray());
         })
         .log();
+  }
+
+
+
+  /**
+   * 메일 발송
+   * @param email
+   */
+  private void sendMail(String email, String contents) {
+    try {
+      String html = FileUtil.readResourceFile(MailForm.LEGAL_COUNSELING.getPath())
+          .replace("${{subject}}", MailForm.LEGAL_COUNSELING.getSubject())
+          .replace("${{contents}}", contents);
+      log.info("send mail: " + html);
+
+      messageService.send(
+          MailSenderInfo.builder()
+              .bodyHTML(html)
+              .subject(MailForm.LEGAL_COUNSELING.getSubject())
+              .emailAddress(email)
+              .build()
+      );
+    } catch (MessagingException | IOException e) {
+      throw new MailException(ErrorCode.FAIL_SEND_MAIL);
+    }
   }
 }

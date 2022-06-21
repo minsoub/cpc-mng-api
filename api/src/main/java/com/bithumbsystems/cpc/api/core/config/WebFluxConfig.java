@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.PathMatchConfigurer;
@@ -32,6 +33,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 public class WebFluxConfig implements WebFluxConfigurer {
 
   private final ApplicationProperties applicationProperties;
+  private final ReactiveJwtDecoder reactiveJwtDecoder;
 
   @Override
   public void configurePathMatching(PathMatchConfigurer configurer) {
@@ -61,7 +63,7 @@ public class WebFluxConfig implements WebFluxConfigurer {
     objectMapper.registerModule(module);
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE); // snake case 로 변환
     return objectMapper;
   }
