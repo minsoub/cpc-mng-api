@@ -5,9 +5,7 @@ import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterListRespons
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterResponse;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Auth;
-import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Category;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Sns;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -28,5 +26,5 @@ public interface BoardMasterMapper {
   @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
   @Mapping(target = "updateAccountId", ignore = true)
-  BoardMaster toEntity(BoardMasterRequest boardMasterRequest, List<Category> categories, Sns snsShare, Auth auth);
+  BoardMaster toEntity(BoardMasterRequest boardMasterRequest, Sns snsShare, Auth auth);
 }

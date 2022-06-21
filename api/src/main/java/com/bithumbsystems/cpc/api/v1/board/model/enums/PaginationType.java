@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 public enum PaginationType implements EnumMapperType {
 
   BUTTON("버튼방식"),
+  MORE("더보기방식"),
   SCROLL("스크롤방식");
 
   private final String title;

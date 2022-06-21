@@ -1,7 +1,6 @@
 package com.bithumbsystems.cpc.api.v1.board.model.response;
 
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Auth;
-import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Category;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster.Sns;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +20,7 @@ public class BoardMasterResponse {
   private Boolean isAllowReply;
   private Boolean isAllowAttachFile;
   private Boolean isUseCategory;
-  private List<Category> categories;
+  private List<String> categories;
   private String paginationType;
   private Integer countPerPage;
   private Boolean isUseTag;

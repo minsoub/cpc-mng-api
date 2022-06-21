@@ -59,7 +59,7 @@ public class BoardService {
    * @return
    */
   public Mono<BoardMasterResponse> createBoardMaster(BoardMasterRequest boardMasterRequest) {
-    return boardDomainService.createBoardMaster(BoardMasterMapper.INSTANCE.toEntity(boardMasterRequest, boardMasterRequest.getCategories(), boardMasterRequest.getSnsShare(), boardMasterRequest.getAuth()))
+    return boardDomainService.createBoardMaster(BoardMasterMapper.INSTANCE.toEntity(boardMasterRequest, boardMasterRequest.getSnsShare(), boardMasterRequest.getAuth()))
         .map(BoardMasterMapper.INSTANCE::toDto)
         .doOnError(throwable -> Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
@@ -87,7 +87,7 @@ public class BoardService {
    * @return
    */
   public Mono<BoardMaster> updateBoardMaster(BoardMasterRequest boardMasterRequest) {
-    return boardDomainService.updateBoardMaster(BoardMasterMapper.INSTANCE.toEntity(boardMasterRequest, boardMasterRequest.getCategories(), boardMasterRequest.getSnsShare(), boardMasterRequest.getAuth()))
+    return boardDomainService.updateBoardMaster(BoardMasterMapper.INSTANCE.toEntity(boardMasterRequest, boardMasterRequest.getSnsShare(), boardMasterRequest.getAuth()))
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));
   }
 
