@@ -2,9 +2,7 @@ package com.bithumbsystems.cpc.api.v1.care.controller;
 
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.care.model.request.LegalCounselingRequest;
@@ -26,15 +24,12 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
@@ -45,20 +40,6 @@ import reactor.core.publisher.Mono;
 @Tag(name = "Legal Counseling APIs", description = "법률 상담 API")
 public class LegalCounselingController {
   private final LegalCounselingService legalCounselingService;
-
-  /**
-   * 법률 상담 등록
-   * @param legalCounselingRequest 법률 상담 신청 정보
-   * @param filePart 첨부 파일
-   * @return
-   */
-  @PostMapping(consumes = {APPLICATION_JSON_VALUE, MULTIPART_FORM_DATA_VALUE})
-  @Operation(description = "법률 상담 등록")
-  public ResponseEntity<Mono<?>> applyLegalCounseling(@RequestPart(value = "legalCounselingRequest") LegalCounselingRequest legalCounselingRequest,
-      @RequestPart(value = "file", required = false) FilePart filePart) {
-
-    return ResponseEntity.ok().body(legalCounselingService.saveAll(filePart, legalCounselingRequest).map(c -> new SingleResponse(c)));
-  }
 
   /**
    * 법률 상담 신청 목록 조회
@@ -148,8 +129,8 @@ public class LegalCounselingController {
    */
   @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
   public Mono<ResponseEntity<?>> downloadExcel(
-      @RequestParam(name = "fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "toDate") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
+      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
       @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {

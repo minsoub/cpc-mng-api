@@ -14,15 +14,8 @@ import com.bithumbsystems.persistence.mongodb.common.service.FileDomainService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.ByteBuffer;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -36,22 +29,14 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Slf4j
 @Service
@@ -63,105 +48,6 @@ public class LegalCounselingService {
   private final LegalCounselingDomainService legalCounselingDomainService;
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
-
-  /**
-   * 법률 상담 신청(파일 업로드 후 법률 상담 정보 저장)
-   * @param filePart 업로드 파일
-   * @param legalCounselingRequest 법률 상담
-   * @return
-   */
-  @Transactional
-  public Mono<LegalCounseling> saveAll(FilePart filePart, LegalCounselingRequest legalCounselingRequest) {
-    String fileKey = UUID.randomUUID().toString();
-    AtomicReference<String> fileName = new AtomicReference<>();
-    AtomicReference<Long> fileSize = new AtomicReference<>();
-
-    fileName.set(filePart.filename());
-    log.debug("Here is ....");
-
-    return DataBufferUtils.join(filePart.content())
-        .flatMap(dataBuffer -> {
-          log.debug("dataBuffer join...");
-          ByteBuffer buf = dataBuffer.asByteBuffer();
-          log.debug("byte size ===> " + buf.array().length);
-
-          fileSize.set((long) buf.array().length);
-
-          return uploadFile(fileKey, fileName.toString(), fileSize.get(), awsProperties.getBucket(), buf)
-              .flatMap(res -> {
-                File info = File.builder()
-                    .fileKey(fileKey)
-                    .fileName(fileName.toString())
-                    .delYn(false)
-                    .build();
-                return fileDomainService.save(info);
-              });
-        }).publishOn(Schedulers.boundedElastic()).flatMap(file -> {
-          legalCounselingRequest.setAttachFileId(file.getFileKey());
-          return saveLegalCounseling(legalCounselingRequest);
-        });
-  }
-
-  /**
-   * 법률 상담 등록
-   * @param legalCounselingRequest 법률 상담
-   * @return
-   */
-  public Mono<LegalCounseling> saveLegalCounseling(LegalCounselingRequest legalCounselingRequest) {
-    LegalCounseling legalCounseling = LegalCounselingMapper.INSTANCE.toEntity(legalCounselingRequest);
-    legalCounseling.setStatus(legalCounseling.getAnswerToContacts()? Status.REQUEST.getCode() : Status.REGISTER.getCode()); // 연락처로 답변받기 체크 시 '답변요청' 아니면 '접수' 상태
-    return legalCounselingDomainService.createLegalCounseling(legalCounseling);
-  }
-
-  /**
-   * S3 File Upload
-   *
-   * @param fileKey
-   * @param fileName
-   * @param fileSize
-   * @param bucketName
-   * @param content
-   * @return
-   */
-  private Mono<PutObjectResponse> uploadFile(String fileKey, String fileName, Long fileSize, String bucketName, ByteBuffer content) {
-    log.debug("save => fileKey : " + fileKey);
-    Map<String, String> metadata = new HashMap<String, String>();
-
-    try {
-      metadata.put("filename", URLEncoder.encode(fileName, "UTF-8"));
-      metadata.put("filesize", String.valueOf(fileSize));
-    } catch (UnsupportedEncodingException e) {
-      return Mono.error(new LegalCounselingException(ErrorCode.FAIL_SAVE_FILE));
-    }
-
-    PutObjectRequest objectRequest = PutObjectRequest.builder()
-        .bucket(bucketName)
-        .contentType((MediaType.APPLICATION_OCTET_STREAM).toString())
-        .contentLength(fileSize)
-        .metadata(metadata)
-        .key(fileKey)
-        .build();
-
-    return Mono.fromFuture(
-        s3AsyncClient.putObject(
-            objectRequest, AsyncRequestBody.fromByteBuffer(content)
-        ).whenComplete((resp, err) -> {
-          try {
-            if (resp != null) {
-              log.info("upload success. Details {}", resp);
-            } else {
-              log.error("whenComplete error : {}", err);
-              err.printStackTrace();
-            }
-          } finally {
-            //s3AsyncClient.close();
-          }
-        }).thenApply(res -> {
-          log.debug("putObject => {}", res);
-          return res;
-        })
-    );
-  }
 
   /**
    * 파일 정보 조회
