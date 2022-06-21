@@ -28,6 +28,7 @@ public class News {
   private String linkUrl;
   private LocalDate postingDate;
   private Boolean isUse;
+  private Integer readCount;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;
