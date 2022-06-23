@@ -45,10 +45,11 @@ public class BoardDomainService {
   /**
    * 게시판 마스터 조회
    * @param boardMasterId 게시판 ID
+   * @param siteId 싸이트 ID
    * @return
    */
-  public Mono<BoardMaster> getBoardMasterInfo(String boardMasterId) {
-    return boardMasterRepository.findById(boardMasterId);
+  public Mono<BoardMaster> getBoardMasterInfo(String boardMasterId, String siteId) {
+    return boardMasterRepository.findByIdAndSiteId(boardMasterId, siteId);
   }
 
   /**

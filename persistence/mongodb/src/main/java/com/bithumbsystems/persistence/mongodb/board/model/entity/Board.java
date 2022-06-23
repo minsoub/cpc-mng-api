@@ -25,16 +25,13 @@ public class Board {
   @Indexed private String boardMasterId;
   private String title;
   private String contents;
-  private Boolean isReply;
-  private String parentId;
   private Boolean isUse;
   private Integer readCount;
   private Boolean isSetNotice;
-  private Boolean isSecret;
-  private String password;
-  private String attachFileId;
   private List<String> tags;
   private String thumbnail;
+  private String description;
+  private String category;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;

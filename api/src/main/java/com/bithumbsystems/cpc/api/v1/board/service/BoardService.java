@@ -75,10 +75,11 @@ public class BoardService {
   /**
    * 게시판 마스터 정보 조회
    * @param boardMasterId 게시판 ID
+   * @param siteId 싸이트 ID
    * @return
    */
-  public Mono<BoardMasterResponse> getBoardMasterInfo(String boardMasterId) {
-    return boardDomainService.getBoardMasterInfo(boardMasterId).map(BoardMasterMapper.INSTANCE::toDto);
+  public Mono<BoardMasterResponse> getBoardMasterInfo(String boardMasterId, String siteId) {
+    return boardDomainService.getBoardMasterInfo(boardMasterId, siteId).map(BoardMasterMapper.INSTANCE::toDto);
   }
 
   /**
@@ -94,10 +95,11 @@ public class BoardService {
   /**
    * 게시판 마스터 삭제
    * @param boardMasterId 게시판 ID
+   * @param siteId 싸이트 ID
    * @return
    */
-  public Mono<BoardMasterResponse> deleteBoardMaster(String boardMasterId) {
-    return boardDomainService.getBoardMasterInfo(boardMasterId)
+  public Mono<BoardMasterResponse> deleteBoardMaster(String boardMasterId, String siteId) {
+    return boardDomainService.getBoardMasterInfo(boardMasterId, siteId)
         .flatMap(boardDomainService::deleteBoardMaster)
         .map(BoardMasterMapper.INSTANCE::toDto)
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
@@ -152,9 +154,6 @@ public class BoardService {
           board.setTitle(boardRequest.getTitle());
           board.setContents(boardRequest.getContents());
           board.setIsSetNotice(boardRequest.getIsSetNotice());
-          board.setIsSecret(boardRequest.getIsSecret());
-          board.setPassword(boardRequest.getPassword());
-          board.setAttachFileId(boardRequest.getAttachFileId());
           board.setTags(boardRequest.getTags());
           board.setThumbnail(boardRequest.getThumbnail());
           return boardDomainService.updateBoard(board);
