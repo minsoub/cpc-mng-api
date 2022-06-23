@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.core.config;
 
 import com.bithumbsystems.cpc.api.core.config.property.ApplicationProperties;
+import com.bithumbsystems.cpc.api.core.config.resolver.CustomArgumentResolver;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -25,6 +26,7 @@ import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.PathMatchConfigurer;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 
 @Configuration
 @EnableWebFlux
@@ -71,5 +73,12 @@ public class WebFluxConfig implements WebFluxConfigurer {
   @Bean
   public ModelResolver modelResolver(ObjectMapper objectMapper) {
     return new ModelResolver(objectMapper);
+  }
+
+  @Override
+  public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
+    WebFluxConfigurer.super.configureArgumentResolvers(configurer);
+    CustomArgumentResolver customArgumentResolver = new CustomArgumentResolver(reactiveJwtDecoder);
+    configurer.addCustomResolver(customArgumentResolver);
   }
 }

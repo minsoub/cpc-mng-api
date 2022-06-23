@@ -16,7 +16,7 @@ spring:
 application:
   version: /v1
   prefix: /api
-  project: /cpc
+  project: /mng/cpc
   exclude-prefix-path: springdoc
 
 jwt:

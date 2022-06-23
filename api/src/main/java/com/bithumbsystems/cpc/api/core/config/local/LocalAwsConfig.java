@@ -26,8 +26,9 @@ public class LocalAwsConfig {
     private String profileName;
 
     private final AwsProperties awsProperties;
-    private KmsAsyncClient kmsAsyncClient;
     private final CredentialsProvider credentialsProvider;
+    private KmsAsyncClient kmsAsyncClient;
+    private com.amazonaws.auth.profile.ProfileCredentialsProvider provider;
 
     @Bean
     public S3AsyncClient s3client() {
@@ -51,5 +52,7 @@ public class LocalAwsConfig {
             .region(Region.of(awsProperties.getRegion()))
             .credentialsProvider(ProfileCredentialsProvider.create(profileName))
             .build();
+
+        provider = new com.amazonaws.auth.profile.ProfileCredentialsProvider(profileName);
     }
 }
