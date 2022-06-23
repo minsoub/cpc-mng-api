@@ -1,7 +1,6 @@
 package com.bithumbsystems.cpc.api.core.util.message;
 
 import com.amazonaws.util.IOUtils;
-import com.bithumbsystems.cpc.api.core.config.local.CredentialsProvider;
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,6 +35,7 @@ public class MailService implements MessageService {
   @Value("${spring.profiles.active:}")
   private String activeProfiles;
   private final AwsProperties awsProperties;
+  private final SesClient sesClient;
 
   @Override
   public void sendWithFile(MailSenderInfo mailSenderInfo) throws IOException {
@@ -130,20 +130,7 @@ public class MailService implements MessageService {
       log.debug("Attempting to send an email through Amazon SES " + "using the AWS SDK for Java...");
 
       Region region = Region.of(awsProperties.getRegion());
-      SesClient client = null;
 
-
-      if (activeProfiles.equals("local")) {
-        CredentialsProvider credentialsProvider = new CredentialsProvider();
-        client = SesClient.builder()
-            .credentialsProvider(credentialsProvider.getProvider())
-            .region(region)
-            .build();
-      } else {
-        client = SesClient.builder()
-            .region(region)
-            .build();
-      }
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       message.writeTo(outputStream);
 
@@ -162,7 +149,7 @@ public class MailService implements MessageService {
           .rawMessage(rawMessage)
           .build();
 
-      client.sendRawEmail(rawEmailRequest);
+      sesClient.sendRawEmail(rawEmailRequest);
 
     } catch (SesException e) {
       log.error(e.awsErrorDetails().errorMessage());

@@ -17,14 +17,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class MainContents {
 
   @Id private String id;
+  private List<Long> virtualAssetBasic;
+  private List<Long> insightColumn;
   private List<Long> virtualAssetTrends;
   private List<Long> blockchainNews;
-  private String investmentGuide1Id;
-  private List<Long> investmentGuide1;
-  private String investmentGuide2Id;
-  private List<Long> investmentGuide2;
-  private String investmentGuide3Id;
-  private List<Long> investmentGuide3;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;

@@ -39,39 +39,21 @@ public class MainContentsController {
   private final MainContentsService mainContentsService;
 
   /**
-   * 게시판 종류 조회
-   * @return
-   */
-  @GetMapping(value = "/bulletin-board-types")
-  @Operation(description = "게시판 종류 조회")
-  public ResponseEntity<Mono<?>> getBulletinBoardTypes() {
-    return ResponseEntity.ok().body(mainContentsService.getBulletinBoardTypes()
-        .collectList()
-        .map(MultiResponse::new));
-  }
-
-  /**
    * 메인화면 선택된 컨텐츠 조회
    * @return
    */
   @GetMapping
   @Operation(description = "메인화면 선택된 컨텐츠 조회")
   public ResponseEntity<Mono<?>> getMainContents() {
-    return ResponseEntity.ok().body(Mono.zip(mainContentsService.getMainContents(),
+    return ResponseEntity.ok().body(Mono.zip(mainContentsService.getVirtualAssetBasic(),
+            mainContentsService.getInsightColumn(),
             mainContentsService.getVirtualAssetTrends(),
-            mainContentsService.getBlockchainNews(),
-            mainContentsService.getInvestmentGuide1(),
-            mainContentsService.getInvestmentGuide2(),
-            mainContentsService.getInvestmentGuide3())
+            mainContentsService.getBlockchainNews())
         .flatMap(tuple -> Mono.just(MainContentsResponse.builder()
-            .virtualAssetTrends(tuple.getT2())
-            .blockchainNews(tuple.getT3())
-            .investmentGuide1Id(tuple.getT1().getInvestmentGuide1Id())
-            .investmentGuide1(tuple.getT4())
-            .investmentGuide2Id(tuple.getT1().getInvestmentGuide2Id())
-            .investmentGuide2(tuple.getT5())
-            .investmentGuide3Id(tuple.getT1().getInvestmentGuide3Id())
-            .investmentGuide3(tuple.getT6())
+            .virtualAssetBasic(tuple.getT1())
+            .insightColumn(tuple.getT2())
+            .virtualAssetTrends(tuple.getT3())
+            .blockchainNews(tuple.getT4())
             .build()))
         .map(SingleResponse::new));
   }
@@ -115,16 +97,16 @@ public class MainContentsController {
         .map(SingleResponse::new));
   }
 
-  /**
-   * 선택된 게시글 조회
-   * @param classification 게시판 구분
-   * @return
-   */
-  @GetMapping("/selected")
-  @Operation(description = "선택된 게시글 조회")
-  public ResponseEntity<Mono<?>> getSelectedBoards(@RequestParam(value = "classification") String classification) {
-    return ResponseEntity.ok().body(mainContentsService.getSelectedBoards(classification)
-        .map(MultiResponse::new)
-    );
-  }
+//  /**
+//   * 선택된 게시글 조회
+//   * @param classification 게시판 구분
+//   * @return
+//   */
+//  @GetMapping("/selected")
+//  @Operation(description = "선택된 게시글 조회")
+//  public ResponseEntity<Mono<?>> getSelectedBoards(@RequestParam(value = "classification") String classification) {
+//    return ResponseEntity.ok().body(mainContentsService.getSelectedBoards(classification)
+//        .map(MultiResponse::new)
+//    );
+//  }
 }

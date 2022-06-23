@@ -1,21 +1,20 @@
 package com.bithumbsystems.cpc.api.v1.main.service;
 
-import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
+import com.bithumbsystems.cpc.api.v1.guide.mapper.NewsMapper;
+import com.bithumbsystems.cpc.api.v1.guide.model.response.NewsResponse;
 import com.bithumbsystems.cpc.api.v1.main.exception.MainContentsException;
 import com.bithumbsystems.cpc.api.v1.main.mapper.MainContentsMapper;
-import com.bithumbsystems.cpc.api.v1.main.model.enums.BulletinBoardType;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.service.BoardDomainService;
+import com.bithumbsystems.persistence.mongodb.guide.service.NewsDomainService;
 import com.bithumbsystems.persistence.mongodb.main.model.entity.MainContents;
 import com.bithumbsystems.persistence.mongodb.main.service.MainContentsDomainService;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,23 +31,30 @@ public class MainContentsService {
 
   private final MainContentsDomainService mainContentsDomainService;
   private final BoardDomainService boardDomainService;
+  private final NewsDomainService newsDomainService;
 
   /**
-   * 게시판 종류 조회
+   * 가상 자산 기초 조회
    * @return
    */
-  public Flux<Object> getBulletinBoardTypes() {
-    return Flux.just(Stream.of(BulletinBoardType.values())
-        .map(EnumMapperValue::new)
-        .collect(Collectors.toList()));
+  public Mono<List<BoardResponse>> getVirtualAssetBasic() {
+    return mainContentsDomainService.findOne()
+        .map(MainContents::getVirtualAssetBasic)
+        .flatMapMany(it -> Flux.fromIterable(it))
+        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .collectList();
   }
 
   /**
-   * 메인 컨텐츠 조회
+   * 인사이트 칼럼 조회
    * @return
    */
-  public Mono<MainContents> getMainContents() {
-    return mainContentsDomainService.findOne();
+  public Mono<List<BoardResponse>> getInsightColumn() {
+    return mainContentsDomainService.findOne()
+        .map(MainContents::getInsightColumn)
+        .flatMapMany(it -> Flux.fromIterable(it))
+        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .collectList();
   }
 
   /**
@@ -67,47 +73,11 @@ public class MainContentsService {
    * 블록 체인 뉴스 조회
    * @return
    */
-  public Mono<List<BoardResponse>> getBlockchainNews() {
+  public Mono<List<NewsResponse>> getBlockchainNews() {
     return mainContentsDomainService.findOne()
         .map(MainContents::getBlockchainNews)
         .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
-        .collectList();
-  }
-
-  /**
-   * 투자 가이드 1 조회
-   * @return
-   */
-  public Mono<List<BoardResponse>> getInvestmentGuide1() {
-    return mainContentsDomainService.findOne()
-        .map(MainContents::getInvestmentGuide1)
-        .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
-        .collectList();
-  }
-
-  /**
-   * 투자 가이드 2 조회
-   * @return
-   */
-  public Mono<List<BoardResponse>> getInvestmentGuide2() {
-    return mainContentsDomainService.findOne()
-        .map(MainContents::getInvestmentGuide2)
-        .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
-        .collectList();
-  }
-
-  /**
-   * 투자 가이드 3 조회
-   * @return
-   */
-  public Mono<List<BoardResponse>> getInvestmentGuide3() {
-    return mainContentsDomainService.findOne()
-        .map(MainContents::getInvestmentGuide3)
-        .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .concatMap(boardId -> newsDomainService.getNewsData(boardId).map(NewsMapper.INSTANCE::toDto))
         .collectList();
   }
 
@@ -140,24 +110,24 @@ public class MainContentsService {
         .doOnError(throwable -> Mono.error(new MainContentsException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
 
-  /**
-   * 선택된 게시글 조회
-   * @param classification 게시판 구분
-   * @return
-   */
-  public Mono<List<BoardResponse>> getSelectedBoards(String classification) {
-    switch (classification) {
-      case "virtualAssetTrends":
-        return getVirtualAssetTrends();
-      case "blockchainNews":
-        return getBlockchainNews();
-      case "investmentGuide1":
-        return getInvestmentGuide1();
-      case "investmentGuide2":
-        return getInvestmentGuide2();
-      case "investmentGuide3":
-        return getInvestmentGuide3();
-    }
-    return Mono.error(new MainContentsException(ErrorCode.NOT_FOUND_CONTENT));
-  }
+//  /**
+//   * 선택된 게시글 조회
+//   * @param classification 게시판 구분
+//   * @return
+//   */
+//  public Mono<List<BoardResponse>> getSelectedBoards(String classification) {
+//    switch (classification) {
+//      case "virtualAssetTrends":
+//        return getVirtualAssetTrends();
+//      case "blockchainNews":
+//        return getBlockchainNews();
+//      case "investmentGuide1":
+//        return getInvestmentGuide1();
+//      case "investmentGuide2":
+//        return getInvestmentGuide2();
+//      case "investmentGuide3":
+//        return getInvestmentGuide3();
+//    }
+//    return Mono.error(new MainContentsException(ErrorCode.NOT_FOUND_CONTENT));
+//  }
 }

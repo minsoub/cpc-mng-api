@@ -11,12 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class MainContentsRequest {
+  private List<Long> virtualAssetBasic;
+  private List<Long> insightColumn;
   private List<Long> virtualAssetTrends;
   private List<Long> blockchainNews;
-  private String investmentGuide1Id;
-  private List<Long> investmentGuide1;
-  private String investmentGuide2Id;
-  private List<Long> investmentGuide2;
-  private String investmentGuide3Id;
-  private List<Long> investmentGuide3;
 }

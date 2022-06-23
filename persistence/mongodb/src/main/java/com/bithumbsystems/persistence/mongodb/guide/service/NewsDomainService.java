@@ -27,6 +27,7 @@ public class NewsDomainService {
    */
   public Mono<News> createNews(News news) {
     news.setIsUse(true);
+    news.setReadCount(0);
     news.setCreateDate(LocalDateTime.now());
     return newsRepository.insert(news);
   }
