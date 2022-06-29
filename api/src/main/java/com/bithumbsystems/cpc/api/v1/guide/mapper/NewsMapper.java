@@ -14,6 +14,7 @@ public interface NewsMapper {
 
   NewsResponse toDto(News news);
 
+  @Mapping(target = "readCount", ignore = true)
   @Mapping(target = "createDate", ignore = true)
   @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)

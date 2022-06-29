@@ -17,5 +17,8 @@ public class BoardResponse {
   private String contents;
   private List<String> tags;
   private String thumbnail;
+  private String description;
+  private String category;
+  private String contributor;
   private LocalDateTime createDate;
 }

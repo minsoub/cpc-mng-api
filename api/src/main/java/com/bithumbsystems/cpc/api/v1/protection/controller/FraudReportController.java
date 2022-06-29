@@ -4,10 +4,13 @@ import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEF
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
+import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.protection.model.request.FraudReportRequest;
 import com.bithumbsystems.cpc.api.v1.protection.service.FraudReportService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -82,12 +85,14 @@ public class FraudReportController {
   /**
    * 사기 신고 답변
    * @param fraudReportRequest 사기 신고 정보
+   * @param account 계정
    * @return
    */
   @PutMapping(value = "/{id}")
   @Operation(description = "사기 신고 답변")
-  public ResponseEntity<Mono<?>> updateFraudReport(@RequestBody FraudReportRequest fraudReportRequest) {
-    return ResponseEntity.ok().body(fraudReportService.updateFraudReport(fraudReportRequest)
+  public ResponseEntity<Mono<?>> updateFraudReport(@RequestBody FraudReportRequest fraudReportRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(fraudReportService.updateFraudReport(fraudReportRequest, account)
         .map(SingleResponse::new));
   }
 

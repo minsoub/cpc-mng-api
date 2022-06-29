@@ -10,9 +10,7 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface BoardCustomRepository {
 
-  Flux<Board> findPageBySearchText(String boardMasterId, String keyword, Pageable pageable);
-
-  Mono<Long> countBySearchText(String boardMasterId, String keyword);
+  Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword);
 
   Flux<Board> findPageBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String title, Pageable pageable);
 

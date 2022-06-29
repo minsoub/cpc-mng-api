@@ -14,6 +14,9 @@ import org.apache.commons.codec.binary.Base64;
 @Slf4j
 public class AES256Util {
 
+  public static final String CLIENT_AES_KEY_ADM = "fWISVCRBVpGh25HCS1U3a6bwqYewKUop";
+  public static final String CLIENT_AES_KEY_CPC = "X996K2nG3QrDi5Cjyu9aATBoeuTM54m2";
+
   /**
    * Encrypt (AES)
    *

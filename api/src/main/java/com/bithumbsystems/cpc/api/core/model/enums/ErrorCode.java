@@ -16,7 +16,8 @@ public enum ErrorCode {
   FAIL_CREATE_CONTENT("F006","cannot create content"),
   FAIL_DELETE_CONTENT("F007","cannot delete content"),
   DUPLICATE_KEY_ERROR("F008", "duplicate key error"),
-  EXCEL_DOWNLOAD_ERROR("F009", "excel download error"),
+  TIMEOUT_ERROR("F009", "timeout error"),
+  EXCEL_DOWNLOAD_ERROR("F011", "excel download error"),
   FAIL_SEND_MAIL("M411","FAIL_SEND_MAIL");
 
   private final String code;

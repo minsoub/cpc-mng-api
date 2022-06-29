@@ -45,11 +45,10 @@ public class BoardDomainService {
   /**
    * 게시판 마스터 조회
    * @param boardMasterId 게시판 ID
-   * @param siteId 싸이트 ID
    * @return
    */
-  public Mono<BoardMaster> getBoardMasterInfo(String boardMasterId, String siteId) {
-    return boardMasterRepository.findByIdAndSiteId(boardMasterId, siteId);
+  public Mono<BoardMaster> getBoardMasterInfo(String boardMasterId) {
+    return boardMasterRepository.findById(boardMasterId);
   }
 
   /**
@@ -87,22 +86,13 @@ public class BoardDomainService {
   /**
    * 게시글 목록 조회
    * @param boardMasterId 게시판 ID
-   * @param keyword 키워드
-   * @param pageable 페이지 정보
-   * @return
-   */
-  public Flux<Board> findPageBySearchText(String boardMasterId, String keyword, Pageable pageable) {
-    return boardCustomRepository.findPageBySearchText(boardMasterId, keyword, pageable);
-  }
-
-  /**
-   * 게시글 목록 건수 조회
-   * @param boardMasterId 게시판 ID
+   * @param startDate 시작 일자
+   * @param endDate 종료 일자
    * @param keyword 키워드
    * @return
    */
-  public Mono<Long> countBySearchText(String boardMasterId, String keyword) {
-    return boardCustomRepository.countBySearchText(boardMasterId, keyword);
+  public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
+    return boardCustomRepository.findBySearchText(boardMasterId, startDate, endDate, keyword);
   }
 
   /**

@@ -1,7 +1,9 @@
 package com.bithumbsystems.cpc.api.v1.board.mapper;
 
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardRequest;
+import com.bithumbsystems.cpc.api.v1.board.model.response.BoardListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
+import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,6 +16,16 @@ public interface BoardMapper {
 
   BoardResponse toDto(Board board);
 
+  @Mapping(target = "id", source = "board.id")
+  @Mapping(target = "category", source = "board.category")
+  @Mapping(target = "title", source = "board.title")
+  @Mapping(target = "createDate", source = "board.createDate")
+  @Mapping(target = "createAccountId", source = "board.createAccountId")
+  @Mapping(target = "createAccountName", expression = "java(account.getName() + '(' + account.getEmail() + ')')")
+  BoardListResponse toDtoList(Board board, AdminAccount account);
+
+  @Mapping(target = "readCount", ignore = true)
+  @Mapping(target = "accountDocs", ignore = true)
   @Mapping(target = "createDate", ignore = true)
   @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)

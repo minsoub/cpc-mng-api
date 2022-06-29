@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.care.service;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
@@ -128,14 +129,16 @@ public class LegalCounselingService {
   /**
    * 법률 상담 신청 수정
    * @param legalCounselingRequest 법률 상담 신청
+   * @param account 계정
    * @return
    */
-  public Mono<LegalCounselingResponse> updateLegalCounseling(LegalCounselingRequest legalCounselingRequest) {
+  public Mono<LegalCounselingResponse> updateLegalCounseling(LegalCounselingRequest legalCounselingRequest, Account account) {
     Long id = legalCounselingRequest.getId();
     return legalCounselingDomainService.getLegalCounselingData(id)
         .flatMap(legalCounseling -> {
           legalCounseling.setAnswer(legalCounselingRequest.getAnswer());
           legalCounseling.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
+          legalCounseling.setUpdateAccountId(account.getAccountId());
           return legalCounselingDomainService.updateLegalCounseling(legalCounseling)
               .map(LegalCounselingMapper.INSTANCE::toDto);
         })

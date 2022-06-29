@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.v1.protection.service;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
@@ -130,15 +131,17 @@ public class FraudReportService {
   /**
    * 사기 신고 수정
    * @param fraudReportRequest 사기 신고
+   * @param account 계정
    * @return
    */
-  public Mono<FraudReportResponse> updateFraudReport(FraudReportRequest fraudReportRequest) {
+  public Mono<FraudReportResponse> updateFraudReport(FraudReportRequest fraudReportRequest, Account account) {
     Long id = fraudReportRequest.getId();
     return fraudReportDomainService.getFraudReportData(id)
         .log()
         .flatMap(fraudReport -> {
           fraudReport.setAnswer(fraudReportRequest.getAnswer());
           fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
+          fraudReport.setUpdateAccountId(account.getAccountId());
           return fraudReportDomainService.updateFraudReport(fraudReport)
               .map(FraudReportMapper.INSTANCE::toDto);
         })

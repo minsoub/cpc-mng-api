@@ -1,5 +1,6 @@
 package com.bithumbsystems.cpc.api.v1.main.service;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
@@ -101,11 +102,15 @@ public class MainContentsService {
   /**
    * 메인 컨텐츠 저장
    * @param mainContentsRequest 메인 컨텐츠
+   * @param account 계정
    * @return
    */
-  public Mono<Void> saveMainContents(MainContentsRequest mainContentsRequest) {
+  public Mono<Void> saveMainContents(MainContentsRequest mainContentsRequest, Account account) {
+    MainContents mainContents = MainContentsMapper.INSTANCE.toEntity(mainContentsRequest);
+    mainContents.setCreateAccountId(account.getAccountId());
+    mainContents.setUpdateAccountId(account.getAccountId());
     return mainContentsDomainService.delete()
-        .and(mainContentsDomainService.save(MainContentsMapper.INSTANCE.toEntity(mainContentsRequest)))
+        .and(mainContentsDomainService.save(mainContents))
         .then()
         .doOnError(throwable -> Mono.error(new MainContentsException(ErrorCode.FAIL_CREATE_CONTENT)));
   }

@@ -2,20 +2,28 @@ package com.bithumbsystems.cpc.api.v1.board.controller;
 
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
+import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardMasterRequest;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardRequest;
 import com.bithumbsystems.cpc.api.v1.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,8 +75,9 @@ public class BoardController {
    */
   @PostMapping
   @Operation(description = "게시판 마스터 등록")
-  public ResponseEntity<Mono<?>> createBoardMaster(@RequestBody BoardMasterRequest boardMasterRequest) {
-    return ResponseEntity.ok().body(boardService.createBoardMaster(boardMasterRequest)
+  public ResponseEntity<Mono<?>> createBoardMaster(@RequestBody BoardMasterRequest boardMasterRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.createBoardMaster(boardMasterRequest, account)
         .map(SingleResponse::new));
   }
 
@@ -87,13 +96,12 @@ public class BoardController {
   /**
    * 게시판 마스터 정보 조회
    * @param boardMasterId 게시판 ID
-   * @param siteId 싸이트 ID
    * @return
    */
   @GetMapping("/{boardMasterId}/info")
   @Operation(description = "게시판 마스터 정보 조회")
-  public ResponseEntity<Mono<?>> getBoardMasterInfo(@PathVariable String boardMasterId, @RequestHeader(value = "site_id") String siteId) {
-    return ResponseEntity.ok().body(boardService.getBoardMasterInfo(boardMasterId, siteId)
+  public ResponseEntity<Mono<?>> getBoardMasterInfo(@PathVariable String boardMasterId) {
+    return ResponseEntity.ok().body(boardService.getBoardMasterInfo(boardMasterId)
         .map(SingleResponse::new));
   }
 
@@ -105,8 +113,10 @@ public class BoardController {
    */
   @PutMapping("/{boardMasterId}")
   @Operation(description = "게시판 마스터 수정")
-  public ResponseEntity<Mono<?>> updateBoardMaster(@PathVariable String boardMasterId, @RequestBody BoardMasterRequest boardMasterRequest) {
-    return ResponseEntity.ok().body(boardService.updateBoardMaster(boardMasterRequest)
+  public ResponseEntity<Mono<?>> updateBoardMaster(@PathVariable String boardMasterId,
+      @RequestBody BoardMasterRequest boardMasterRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.updateBoardMaster(boardMasterRequest, account)
         .map(SingleResponse::new));
   }
 
@@ -117,8 +127,9 @@ public class BoardController {
    */
   @DeleteMapping("/{boardMasterId}")
   @Operation(description = "게시판 마스터 삭제")
-  public ResponseEntity<Mono<?>> deleteBoardMaster(@PathVariable String boardMasterId, @RequestHeader(value = "site_id") String siteId) {
-    return ResponseEntity.ok().body(boardService.deleteBoardMaster(boardMasterId, siteId).then(
+  public ResponseEntity<Mono<?>> deleteBoardMaster(@PathVariable String boardMasterId,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.deleteBoardMaster(boardMasterId, account).then(
         Mono.just(new SingleResponse()))
     );
   }
@@ -127,23 +138,22 @@ public class BoardController {
    * 게시글 목록 조회
    * @param boardMasterId 게시판 ID
    * @param query 검색어
-   * @param pageNo - 페이지 번호
-   * @param pageSize - 페이지 사이즈
    * @return
    */
   @GetMapping("/{boardMasterId}")
   @Operation(description = "게시글 목록 조회")
   public ResponseEntity<Mono<?>> getBoards(
       @PathVariable String boardMasterId,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
+      @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
 
-    return ResponseEntity.ok().body(boardService.getBoards(boardMasterId, keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
-        .map(SingleResponse::new));
+    return ResponseEntity.ok().body(boardService.getBoards(boardMasterId, startDate, endDate, keyword)
+        .collectList()
+        .map(MultiResponse::new));
   }
 
   /**
@@ -167,9 +177,11 @@ public class BoardController {
    */
   @PostMapping("/{boardMasterId}")
   @Operation(description = "게시글 등록")
-  public ResponseEntity<Mono<?>> createBoard(@PathVariable String boardMasterId, @RequestBody BoardRequest boardRequest) {
+  public ResponseEntity<Mono<?>> createBoard(@PathVariable String boardMasterId,
+      @RequestBody BoardRequest boardRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
     boardRequest.setBoardMasterId(boardMasterId);
-    return ResponseEntity.ok().body(boardService.createBoard(boardRequest)
+    return ResponseEntity.ok().body(boardService.createBoard(boardRequest, account)
         .map(SingleResponse::new));
   }
 
@@ -181,8 +193,11 @@ public class BoardController {
    */
   @PutMapping("/{boardMasterId}/{boardId}")
   @Operation(description = "게시글 수정")
-  public ResponseEntity<Mono<?>> updateBoard(@PathVariable String boardMasterId, @RequestBody BoardRequest boardRequest) {
-    return ResponseEntity.ok().body(boardService.updateBoard(boardRequest)
+  public ResponseEntity<Mono<?>> updateBoard(@PathVariable String boardMasterId,
+      @PathVariable String boardId,
+      @RequestBody BoardRequest boardRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.updateBoard(boardRequest, account)
         .map(SingleResponse::new));
   }
 
@@ -194,8 +209,25 @@ public class BoardController {
    */
   @DeleteMapping("/{boardMasterId}/{boardId}")
   @Operation(description = "게시글 삭제")
-  public ResponseEntity<Mono<?>> deleteBoard(@PathVariable String boardMasterId, @PathVariable Long boardId) {
-    return ResponseEntity.ok().body(boardService.deleteBoard(boardId).then(
+  public ResponseEntity<Mono<?>> deleteBoard(@PathVariable String boardMasterId,
+      @PathVariable Long boardId,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.deleteBoard(boardId, account).then(
+        Mono.just(new SingleResponse()))
+    );
+  }
+
+  /**
+   * 게시글 일괄 삭제
+   * @param boardMasterId 게시판 ID
+   * @return
+   */
+  @DeleteMapping("/{boardMasterId}/bulk-delete")
+  @Operation(description = "게시글 일괄 삭제")
+  public ResponseEntity<Mono<?>> deleteBoards(@PathVariable String boardMasterId,
+      @RequestParam(value = "deleteIds") String deleteIds,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.deleteBoards(deleteIds, account).then(
         Mono.just(new SingleResponse()))
     );
   }

@@ -3,12 +3,15 @@ package com.bithumbsystems.cpc.api.v1.main.controller;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
+import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
 import com.bithumbsystems.cpc.api.v1.main.model.response.MainContentsResponse;
 import com.bithumbsystems.cpc.api.v1.main.service.MainContentsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -88,12 +91,14 @@ public class MainContentsController {
   /**
    * 선택된 게시글 저장
    * @param mainContentsRequest 선택된 게시글 정보
+   * @param account 계정
    * @return
    */
   @PostMapping
   @Operation(description = "선택된 게시글 저장")
-  public ResponseEntity<Mono<?>> saveMainContents(@RequestBody MainContentsRequest mainContentsRequest) {
-    return ResponseEntity.ok().body(mainContentsService.saveMainContents(mainContentsRequest)
+  public ResponseEntity<Mono<?>> saveMainContents(@RequestBody MainContentsRequest mainContentsRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(mainContentsService.saveMainContents(mainContentsRequest, account)
         .map(SingleResponse::new));
   }
 

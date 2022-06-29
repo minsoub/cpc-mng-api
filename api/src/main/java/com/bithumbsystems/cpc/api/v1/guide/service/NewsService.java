@@ -1,5 +1,6 @@
 package com.bithumbsystems.cpc.api.v1.guide.service;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.v1.guide.exception.NewsException;
 import com.bithumbsystems.cpc.api.v1.guide.mapper.NewsMapper;
@@ -26,10 +27,13 @@ public class NewsService {
   /**
    * 블록체인 뉴스 등록
    * @param newsRequest 블록체인 뉴스
+   * @param account 계정
    * @return
    */
-  public Mono<NewsResponse> createNews(NewsRequest newsRequest) {
-    return newsDomainService.createNews(NewsMapper.INSTANCE.toEntity(newsRequest))
+  public Mono<NewsResponse> createNews(NewsRequest newsRequest, Account account) {
+    News news = NewsMapper.INSTANCE.toEntity(newsRequest);
+    news.setCreateAccountId(account.getAccountId());
+    return newsDomainService.createNews(news)
         .map(NewsMapper.INSTANCE::toDto)
         .switchIfEmpty(Mono.error(new NewsException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
@@ -63,9 +67,10 @@ public class NewsService {
   /**
    * 블록체인 뉴스 수정
    * @param newsRequest 블록체인 뉴스
+   * @param account 계정
    * @return
    */
-  public Mono<NewsResponse> updateNews(NewsRequest newsRequest) {
+  public Mono<NewsResponse> updateNews(NewsRequest newsRequest, Account account) {
     Long id = newsRequest.getId();
     return newsDomainService.getNewsData(id)
         .flatMap(news -> {
@@ -74,6 +79,7 @@ public class NewsService {
           news.setLinkUrl(newsRequest.getLinkUrl());
           news.setThumbnailUrl(newsRequest.getThumbnailUrl());
           news.setPostingDate(newsRequest.getPostingDate());
+          news.setUpdateAccountId(account.getAccountId());
           return newsDomainService.updateNews(news)
               .map(NewsMapper.INSTANCE::toDto);
         })
@@ -82,12 +88,16 @@ public class NewsService {
 
   /**
    * 블록체인 뉴스 삭제
+   * @param account 계정
    * @param id ID
    * @return
    */
-  public Mono<NewsResponse> deleteNews(Long id) {
+  public Mono<NewsResponse> deleteNews(Long id, Account account) {
     return newsDomainService.getNewsData(id)
-        .flatMap(newsDomainService::deleteNews)
+        .flatMap(news -> {
+          news.setUpdateAccountId(account.getAccountId());
+          return newsDomainService.deleteNews(news);
+        })
         .map(NewsMapper.INSTANCE::toDto)
         .switchIfEmpty(Mono.error(new NewsException(ErrorCode.FAIL_DELETE_CONTENT)));
   }

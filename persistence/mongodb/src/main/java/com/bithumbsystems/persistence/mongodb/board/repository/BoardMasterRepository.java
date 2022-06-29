@@ -10,5 +10,5 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface BoardMasterRepository extends ReactiveMongoRepository<BoardMaster, String> {
-  Mono<BoardMaster> findByIdAndSiteId(String boardMasterId, String siteId);
+
 }

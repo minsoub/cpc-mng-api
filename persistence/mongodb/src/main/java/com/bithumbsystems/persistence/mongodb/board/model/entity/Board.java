@@ -1,5 +1,6 @@
 package com.bithumbsystems.persistence.mongodb.board.model.entity;
 
+import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -11,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -32,8 +34,10 @@ public class Board {
   private String thumbnail;
   private String description;
   private String category;
+  private String contributor;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;
   @LastModifiedBy private String updateAccountId;
+  @DBRef(db = "admin_account") private List<AdminAccount> accountDocs;
 }

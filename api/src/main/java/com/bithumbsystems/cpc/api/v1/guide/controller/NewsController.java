@@ -3,10 +3,13 @@ package com.bithumbsystems.cpc.api.v1.guide.controller;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
 import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 
+import com.bithumbsystems.cpc.api.core.config.resolver.Account;
+import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.guide.model.request.NewsRequest;
 import com.bithumbsystems.cpc.api.v1.guide.service.NewsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -41,12 +44,14 @@ public class NewsController {
   /**
    * 블록체인 뉴스 등록
    * @param newsRequest 블록체인 뉴스
+   * @param account 계정
    * @return
    */
   @PostMapping
   @Operation(description = "블록체인 뉴스 등록")
-  public ResponseEntity<Mono<?>> createNews(@RequestBody NewsRequest newsRequest) {
-    return ResponseEntity.ok().body(newsService.createNews(newsRequest)
+  public ResponseEntity<Mono<?>> createNews(@RequestBody NewsRequest newsRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(newsService.createNews(newsRequest, account)
         .map(SingleResponse::new));
   }
 
@@ -85,24 +90,28 @@ public class NewsController {
   /**
    * 블록체인 뉴스 수정
    * @param newsRequest 블록체인 뉴스
+   * @param account 계정
    * @return
    */
   @PutMapping(value = "/{id}")
   @Operation(description = "블록체인 뉴스 수정")
-  public ResponseEntity<Mono<?>> updateNews(@RequestBody NewsRequest newsRequest) {
-    return ResponseEntity.ok().body(newsService.updateNews(newsRequest)
+  public ResponseEntity<Mono<?>> updateNews(@RequestBody NewsRequest newsRequest,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(newsService.updateNews(newsRequest, account)
         .map(SingleResponse::new));
   }
 
   /**
    * 블록체인 뉴스 삭제
    * @param id ID
+   * @param account 계정
    * @return
    */
   @DeleteMapping(value = "/{id}")
   @Operation(description = "블록체인 뉴스 삭제")
-  public ResponseEntity<Mono<?>> deleteNews(@PathVariable Long id) {
-    return ResponseEntity.ok().body(newsService.deleteNews(id).then(
+  public ResponseEntity<Mono<?>> deleteNews(@PathVariable Long id,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(newsService.deleteNews(id, account).then(
         Mono.just(new SingleResponse()))
     );
   }
