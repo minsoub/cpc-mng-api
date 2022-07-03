@@ -1,10 +1,8 @@
 package com.bithumbsystems.cpc.api.v1.guide.controller;
 
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
-
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
+import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.guide.model.request.NewsRequest;
 import com.bithumbsystems.cpc.api.v1.guide.service.NewsService;
@@ -16,8 +14,6 @@ import java.net.URLDecoder;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +44,7 @@ public class NewsController {
    * @return
    */
   @PostMapping
-  @Operation(description = "블록체인 뉴스 등록")
+  @Operation(summary = "블록체인 뉴스 등록", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 등록", tags = "콘텐츠 관리 > 블록체인 뉴스")
   public ResponseEntity<Mono<?>> createNews(@RequestBody NewsRequest newsRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(newsService.createNews(newsRequest, account)
@@ -61,18 +57,17 @@ public class NewsController {
    * @return
    */
   @GetMapping
-  @Operation(description = "블록체인 뉴스 목록 조회")
+  @Operation(summary = "블록체인 뉴스 목록 조회", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 목록 조회", tags = "콘텐츠 관리 > 블록체인 뉴스")
   public ResponseEntity<Mono<?>> getNewsList(
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
+      @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(newsService.getNewsList(fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
-        .map(SingleResponse::new));
+    return ResponseEntity.ok().body(newsService.getNewsList(startDate, endDate.plusDays(1), keyword)
+        .collectList()
+        .map(MultiResponse::new));
   }
 
   /**
@@ -81,7 +76,7 @@ public class NewsController {
    * @return
    */
   @GetMapping(value = "/{id}")
-  @Operation(description = "블록체인 뉴스 조회")
+  @Operation(summary = "블록체인 뉴스 정보 조회", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 정보 조회", tags = "콘텐츠 관리 > 블록체인 뉴스")
   public ResponseEntity<Mono<?>> getNewsData(@PathVariable Long id) {
     return ResponseEntity.ok().body(newsService.getNewsData(id)
         .map(SingleResponse::new));
@@ -94,7 +89,7 @@ public class NewsController {
    * @return
    */
   @PutMapping(value = "/{id}")
-  @Operation(description = "블록체인 뉴스 수정")
+  @Operation(summary = "블록체인 뉴스 수정", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 수정", tags = "콘텐츠 관리 > 블록체인 뉴스")
   public ResponseEntity<Mono<?>> updateNews(@RequestBody NewsRequest newsRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(newsService.updateNews(newsRequest, account)
@@ -108,10 +103,24 @@ public class NewsController {
    * @return
    */
   @DeleteMapping(value = "/{id}")
-  @Operation(description = "블록체인 뉴스 삭제")
+  @Operation(summary = "블록체인 뉴스 삭제", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 삭제", tags = "콘텐츠 관리 > 블록체인 뉴스")
   public ResponseEntity<Mono<?>> deleteNews(@PathVariable Long id,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(newsService.deleteNews(id, account).then(
+        Mono.just(new SingleResponse()))
+    );
+  }
+
+  /**
+   * 블록체인 뉴스 일괄 삭제
+   * @param deleteIds 삭제할 id 리스트
+   * @return
+   */
+  @DeleteMapping("/bulk-delete")
+  @Operation(summary = "블록체인 뉴스 일괄 삭제", description = "콘텐츠 관리 > 블록체인 뉴스: 블록체인 뉴스 일괄 삭제", tags = "콘텐츠 관리 > 블록체인 뉴스")
+  public ResponseEntity<Mono<?>> deleteBoards(@RequestParam(value = "deleteIds") String deleteIds,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(newsService.deleteNewss(deleteIds, account).then(
         Mono.just(new SingleResponse()))
     );
   }

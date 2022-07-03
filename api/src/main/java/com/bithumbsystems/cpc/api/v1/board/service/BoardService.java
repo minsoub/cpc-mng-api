@@ -1,5 +1,6 @@
 package com.bithumbsystems.cpc.api.v1.board.service;
 
+import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
@@ -18,19 +19,32 @@ import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
 import com.bithumbsystems.persistence.mongodb.board.service.BoardDomainService;
+import com.bithumbsystems.persistence.mongodb.common.model.entity.File;
+import com.bithumbsystems.persistence.mongodb.common.service.FileDomainService;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.text.Normalizer;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Slf4j
 @Service
@@ -38,6 +52,9 @@ import reactor.core.publisher.Mono;
 public class BoardService {
 
   private final BoardDomainService boardDomainService;
+  private final AwsProperties awsProperties;
+  private final S3AsyncClient s3AsyncClient;
+  private final FileDomainService fileDomainService;
 
   /**
    * 게시판 유형 조회
@@ -125,10 +142,11 @@ public class BoardService {
    * @param startDate 시작 일자
    * @param endDate 종료 일자
    * @param keyword 키워드
+   * @param category 카테고리
    * @return
    */
-  public Flux<BoardListResponse> getBoards(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
-    return boardDomainService.findBySearchText(boardMasterId, startDate, endDate, keyword)
+  public Flux<BoardListResponse> getBoards(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, String category) {
+    return boardDomainService.findBySearchText(boardMasterId, startDate, endDate, keyword, category)
         .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
             .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
   }
@@ -139,48 +157,127 @@ public class BoardService {
    * @return
    */
   public Mono<BoardResponse> getBoardData(Long boardId) {
-    return boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto)
+    return boardDomainService.getBoardData(boardId)
+        .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
+            .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)))
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
   /**
    * 게시글 등록
+   * @param filePart 썸네일이미지 파일
    * @param boardRequest 게시글
    * @param account 계정
    * @return
    */
-  public Mono<BoardResponse> createBoard(BoardRequest boardRequest, Account account) {
+  public Mono<BoardResponse> createBoard(FilePart filePart, BoardRequest boardRequest, Account account) {
     Board board = BoardMapper.INSTANCE.toEntity(boardRequest);
     board.setReadCount(0);
     board.setIsUse(true);
+    if (boardRequest.getIsSetNotice() == null)  board.setIsSetNotice(false);
     board.setCreateAccountId(account.getAccountId());
-    return boardDomainService.createBoard(board)
-        .map(BoardMapper.INSTANCE::toDto)
-        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
+
+    if (filePart == null) {
+      return boardDomainService.createBoard(board)
+          .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+          .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
+    } else {
+      String fileKey = UUID.randomUUID().toString();
+      board.setThumbnail(fileKey);
+
+      return boardDomainService.createBoard(board)
+          .zipWith(
+              DataBufferUtils.join(filePart.content())
+                  .flatMap(dataBuffer -> {
+                    ByteBuffer buf = dataBuffer.asByteBuffer();
+                    String fileName = filePart.filename();
+                    Long fileSize = (long) buf.array().length;
+
+                    return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
+                        .flatMap(res -> {
+                          File info = File.builder()
+                              .fileKey(fileKey)
+                              .fileName(Normalizer.normalize(fileName, Normalizer.Form.NFC))
+                              .createDate(LocalDateTime.now())
+                              .delYn(false)
+                              .build();
+                          return fileDomainService.save(info);
+                        });
+                  })
+          )
+          .map(Tuple2::getT1)
+          .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+          .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
+    }
   }
 
   /**
    * 게시글 수정
-   *
+   * @param filePart 썸네일이미지 파일
    * @param boardRequest 게시글
    * @param account 계정
    * @return
    */
-  public Mono<BoardResponse> updateBoard(BoardRequest boardRequest, Account account) {
+  public Mono<BoardResponse> updateBoard(FilePart filePart, BoardRequest boardRequest, Account account) {
     Long boardId = boardRequest.getId();
-    return boardDomainService.getBoardData(boardId)
-        .flatMap(board -> {
-          board.setCategory(boardRequest.getCategory());
-          board.setTitle(boardRequest.getTitle());
-          board.setContents(boardRequest.getContents());
-          board.setIsSetNotice(boardRequest.getIsSetNotice());
-          board.setTags(boardRequest.getTags());
-          board.setThumbnail(boardRequest.getThumbnail());
-          board.setUpdateAccountId(account.getAccountId());
-          return boardDomainService.updateBoard(board);
-        })
-        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)))
-        .map(BoardMapper.INSTANCE::toDto);
+    if (filePart == null) {
+      return boardDomainService.getBoardData(boardId)
+          .flatMap(board -> {
+            board.setCategory(boardRequest.getCategory());
+            board.setTitle(boardRequest.getTitle());
+            board.setContents(boardRequest.getContents());
+            board.setDescription(boardRequest.getDescription());
+            board.setIsSetNotice(boardRequest.getIsSetNotice());
+            board.setTags(boardRequest.getTags());
+            board.setThumbnail(boardRequest.getThumbnail());
+            board.setUpdateAccountId(account.getAccountId());
+            return boardDomainService.updateBoard(board);
+          })
+          .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+          .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));
+    } else {
+      String fileKey = UUID.randomUUID().toString();
+      boardRequest.setThumbnail(fileKey);
+
+      return boardDomainService.getBoardData(boardId)
+          .flatMap(board -> {
+            board.setCategory(boardRequest.getCategory());
+            board.setTitle(boardRequest.getTitle());
+            board.setContents(boardRequest.getContents());
+            board.setDescription(boardRequest.getDescription());
+            board.setIsSetNotice(boardRequest.getIsSetNotice());
+            board.setTags(boardRequest.getTags());
+            board.setThumbnail(boardRequest.getThumbnail());
+            board.setUpdateAccountId(account.getAccountId());
+            return boardDomainService.updateBoard(board);
+          })
+          .zipWith(
+              DataBufferUtils.join(filePart.content())
+                  .flatMap(dataBuffer -> {
+                    ByteBuffer buf = dataBuffer.asByteBuffer();
+                    String fileName = filePart.filename();
+                    Long fileSize = (long) buf.array().length;
+
+                    return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
+                        .flatMap(res -> {
+                          File info = File.builder()
+                              .fileKey(fileKey)
+                              .fileName(Normalizer.normalize(fileName, Normalizer.Form.NFC))
+                              .createDate(LocalDateTime.now())
+                              .delYn(false)
+                              .build();
+                          return fileDomainService.save(info);
+                        });
+                  })
+          )
+          .map(Tuple2::getT1)
+          .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+          .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));
+    }
   }
 
   /**
@@ -195,7 +292,8 @@ public class BoardService {
           board.setUpdateAccountId(account.getAccountId());
           return boardDomainService.deleteBoard(board);
         })
-        .map(BoardMapper.INSTANCE::toDto)
+        .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+            .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
   }
 
@@ -213,5 +311,55 @@ public class BoardService {
               return boardDomainService.deleteBoard(board);
             }))
         .then();
+  }
+
+  /**
+   * S3 File Upload
+   *
+   * @param fileKey
+   * @param fileName
+   * @param fileSize
+   * @param bucketName
+   * @param content
+   * @return
+   */
+  public Mono<PutObjectResponse> uploadFile(String fileKey, String fileName, Long fileSize, String bucketName, ByteBuffer content) {
+    // String fileName = part.filename();
+    log.debug("save => fileKey : " + fileKey);
+    Map<String, String> metadata = new HashMap<String, String>();
+    try {
+      metadata.put("filename", URLEncoder.encode(fileName, "UTF-8"));
+      metadata.put("filesize", String.valueOf(fileSize));
+    } catch (UnsupportedEncodingException e) {
+      return Mono.error(new BoardException(ErrorCode.FAIL_SAVE_FILE));
+    }
+
+    PutObjectRequest objectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .contentType((MediaType.APPLICATION_OCTET_STREAM).toString())
+        .contentLength(fileSize)
+        .metadata(metadata)
+        .key(fileKey)
+        .build();
+
+    return Mono.fromFuture(
+        s3AsyncClient.putObject(
+            objectRequest, AsyncRequestBody.fromByteBuffer(content)
+        ).whenComplete((resp, err) -> {
+          try {
+            if (resp != null) {
+              log.info("upload success. Details {}", resp);
+            } else {
+              log.error("whenComplete error : {}", err);
+              err.printStackTrace();
+            }
+          }finally {
+            //s3AsyncClient.close();
+          }
+        }).thenApply(res -> {
+          log.debug("putObject => {}", res);
+          return res;
+        })
+    );
   }
 }

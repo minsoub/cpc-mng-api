@@ -37,10 +37,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -105,15 +103,11 @@ public class LegalCounselingService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
-   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<Page<LegalCounseling>> getLegalCounselingList(LocalDate fromDate, LocalDate toDate, String status, String keyword, PageRequest pageRequest) {
-    return legalCounselingDomainService.findPageBySearchText(fromDate, toDate, status, keyword, pageRequest)
-        .collectList()
-        .zipWith(legalCounselingDomainService.countBySearchText(fromDate, toDate, status, keyword)
-            .map(c -> c))
-        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+  public Flux<LegalCounselingResponse> getLegalCounselingList(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
+    return legalCounselingDomainService.findBySearchText(fromDate, toDate, status, keyword)
+        .map(LegalCounselingMapper.INSTANCE::toDto);
   }
 
   /**

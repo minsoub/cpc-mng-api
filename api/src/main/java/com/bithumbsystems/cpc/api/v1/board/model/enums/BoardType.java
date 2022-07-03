@@ -3,6 +3,7 @@ package com.bithumbsystems.cpc.api.v1.board.model.enums;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Getter
 @RequiredArgsConstructor
@@ -20,9 +21,11 @@ public enum BoardType implements EnumMapperType {
   }
 
   public static String getTitle(String code) {
-    for (BoardType boardType : BoardType.values()) {
-      if (code.equals(boardType.getCode())) {
-        return boardType.getTitle();
+    if (StringUtils.hasLength(code)) {
+      for (BoardType boardType : BoardType.values()) {
+        if (code.equals(boardType.getCode())) {
+          return boardType.getTitle();
+        }
       }
     }
     return null;

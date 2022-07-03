@@ -10,12 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class NewsResponse {
+public class NewsListResponse {
   private Long id;
-  private String title;
   private String newspaper;
-  private String thumbnailUrl;
+  private String title;
   private String linkUrl;
   private String postingDate;
   private LocalDateTime createDate;
+  private String createAccountId;
+  private String createAccountName;
 }

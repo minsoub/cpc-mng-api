@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BoardResponse {
   private Long id;
+  private Boolean isSetNotice;
   private String title;
   private String contents;
   private List<String> tags;
@@ -21,4 +22,6 @@ public class BoardResponse {
   private String category;
   private String contributor;
   private LocalDateTime createDate;
+  private String createAccountId;
+  private String createAccountName;
 }

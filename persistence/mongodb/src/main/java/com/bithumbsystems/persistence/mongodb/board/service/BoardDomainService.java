@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -78,7 +77,6 @@ public class BoardDomainService {
    * @return
    */
   public Mono<Board> createBoard(Board board) {
-    board.setIsUse(true);
     board.setCreateDate(LocalDateTime.now());
     return boardRepository.insert(board);
   }
@@ -89,10 +87,11 @@ public class BoardDomainService {
    * @param startDate 시작 일자
    * @param endDate 종료 일자
    * @param keyword 키워드
+   * @param category 카테고리
    * @return
    */
-  public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
-    return boardCustomRepository.findBySearchText(boardMasterId, startDate, endDate, keyword);
+  public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, String category) {
+    return boardCustomRepository.findBySearchText(boardMasterId, startDate, endDate, keyword, category);
   }
 
   /**
@@ -101,23 +100,10 @@ public class BoardDomainService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
-   * @param pageable 페이지 정보
    * @return
    */
-  public Flux<Board> findPageBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, Pageable pageable) {
-    return boardCustomRepository.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword, pageable);
-  }
-
-  /**
-   * 메인 컨텐츠 설정용 게시글 목록 건수 조회
-   * @param boardMasterId 게시판 ID
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
-   * @param keyword 키워드
-   * @return
-   */
-  public Mono<Long> countBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
-    return boardCustomRepository.countBySearchTextForMain(boardMasterId, fromDate, toDate, keyword);
+  public Flux<Board> findPageBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
+    return boardCustomRepository.findBySearchTextForMain(boardMasterId, fromDate, toDate, keyword);
   }
 
   /**
@@ -126,7 +112,7 @@ public class BoardDomainService {
    * @return
    */
   public Mono<Board> getBoardData(Long boardId) {
-    return boardRepository.findById(boardId);
+    return boardCustomRepository.findById(boardId).next();
   }
 
   /**

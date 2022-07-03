@@ -1,8 +1,5 @@
 package com.bithumbsystems.cpc.api.v1.main.controller;
 
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
-
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
@@ -18,8 +15,6 @@ import java.net.URLDecoder;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +41,7 @@ public class MainContentsController {
    * @return
    */
   @GetMapping
-  @Operation(description = "메인화면 선택된 컨텐츠 조회")
+  @Operation(summary = "메인화면 선택된 컨텐츠 조회", description = "메인 관리 > 콘텐츠 노출 관리: 메인화면 선택된 컨텐츠 조회", tags = "메인 관리 > 콘텐츠 노출 관리")
   public ResponseEntity<Mono<?>> getMainContents() {
     return ResponseEntity.ok().body(Mono.zip(mainContentsService.getVirtualAssetBasic(),
             mainContentsService.getInsightColumn(),
@@ -67,25 +62,22 @@ public class MainContentsController {
    * @param fromDate 시작 일자
    * @param toDate 종료 일자
    * @param query 검색어
-   * @param pageNo - 페이지 번호
-   * @param pageSize - 페이지 사이즈
    * @return
    */
   @GetMapping("/{boardMasterId}")
-  @Operation(description = "메인 화면 컨텐츠용 게시글 조회")
+  @Operation(summary = "메인 화면 컨텐츠용 게시글 조회", description = "메인 관리 > 콘텐츠 노출 관리: 메인 화면 컨텐츠용 게시글 조회", tags = "메인 관리 > 콘텐츠 노출 관리")
   public ResponseEntity<Mono<?>> getBoardsForMain(@PathVariable String boardMasterId,
       @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
       @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
 
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
 
-    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
-        .map(SingleResponse::new));
+    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword)
+        .collectList()
+        .map(MultiResponse::new));
   }
 
   /**
@@ -95,23 +87,10 @@ public class MainContentsController {
    * @return
    */
   @PostMapping
-  @Operation(description = "선택된 게시글 저장")
+  @Operation(summary = "선택된 게시글 저장", description = "메인 관리 > 콘텐츠 노출 관리: 선택된 게시글 저장", tags = "메인 관리 > 콘텐츠 노출 관리")
   public ResponseEntity<Mono<?>> saveMainContents(@RequestBody MainContentsRequest mainContentsRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(mainContentsService.saveMainContents(mainContentsRequest, account)
         .map(SingleResponse::new));
   }
-
-//  /**
-//   * 선택된 게시글 조회
-//   * @param classification 게시판 구분
-//   * @return
-//   */
-//  @GetMapping("/selected")
-//  @Operation(description = "선택된 게시글 조회")
-//  public ResponseEntity<Mono<?>> getSelectedBoards(@RequestParam(value = "classification") String classification) {
-//    return ResponseEntity.ok().body(mainContentsService.getSelectedBoards(classification)
-//        .map(MultiResponse::new)
-//    );
-//  }
 }

@@ -15,4 +15,6 @@ public class ApplicationProperties {
   private String prefix;
   private String project;
   private String[] excludePrefixPath;
+  private String siteId;
+  private String roleType;
 }

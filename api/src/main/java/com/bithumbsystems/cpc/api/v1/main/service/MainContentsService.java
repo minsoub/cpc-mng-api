@@ -3,13 +3,14 @@ package com.bithumbsystems.cpc.api.v1.main.service;
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
+import com.bithumbsystems.cpc.api.v1.board.model.response.BoardListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
 import com.bithumbsystems.cpc.api.v1.guide.mapper.NewsMapper;
 import com.bithumbsystems.cpc.api.v1.guide.model.response.NewsResponse;
 import com.bithumbsystems.cpc.api.v1.main.exception.MainContentsException;
 import com.bithumbsystems.cpc.api.v1.main.mapper.MainContentsMapper;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
-import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
+import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.service.BoardDomainService;
 import com.bithumbsystems.persistence.mongodb.guide.service.NewsDomainService;
 import com.bithumbsystems.persistence.mongodb.main.model.entity.MainContents;
@@ -18,9 +19,6 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -42,7 +40,9 @@ public class MainContentsService {
     return mainContentsDomainService.findOne()
         .map(MainContents::getVirtualAssetBasic)
         .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .concatMap(boardId -> boardDomainService.getBoardData(boardId)
+            .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
+                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -54,7 +54,9 @@ public class MainContentsService {
     return mainContentsDomainService.findOne()
         .map(MainContents::getInsightColumn)
         .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .concatMap(boardId -> boardDomainService.getBoardData(boardId)
+            .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
+                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -66,7 +68,9 @@ public class MainContentsService {
     return mainContentsDomainService.findOne()
         .map(MainContents::getVirtualAssetTrends)
         .flatMapMany(it -> Flux.fromIterable(it))
-        .concatMap(boardId -> boardDomainService.getBoardData(boardId).map(BoardMapper.INSTANCE::toDto))
+        .concatMap(boardId -> boardDomainService.getBoardData(boardId)
+            .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
+                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -88,15 +92,12 @@ public class MainContentsService {
    * @param fromDate 시작 일자
    * @param toDate 종료 일자
    * @param keyword 키워드
-   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<Page<Board>> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword, PageRequest pageRequest) {
-    return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword, pageRequest)
-        .collectList()
-        .zipWith(boardDomainService.countBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
-            .map(c -> c))
-        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+  public Flux<BoardListResponse> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
+    return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
+        .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
+            .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
   }
 
   /**

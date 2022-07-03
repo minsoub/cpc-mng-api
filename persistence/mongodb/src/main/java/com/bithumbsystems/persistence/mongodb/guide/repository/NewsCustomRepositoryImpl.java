@@ -6,13 +6,15 @@ import com.bithumbsystems.persistence.mongodb.guide.model.entity.News;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,31 +24,28 @@ public class NewsCustomRepositoryImpl implements NewsCustomRepository {
   private final ReactiveMongoTemplate reactiveMongoTemplate;
 
   @Override
-  public Flux<News> findPageBySearchText(LocalDate fromDate, LocalDate toDate, String keyword, Pageable pageable) {
-    return reactiveMongoTemplate.find(getQueryBySearchText(fromDate, toDate, keyword).with(pageable), News.class);
-  }
-
-  @Override
-  public Mono<Long> countBySearchText(LocalDate fromDate, LocalDate toDate, String keyword) {
-    return reactiveMongoTemplate.count(getQueryBySearchText(fromDate, toDate, keyword), News.class);
-  }
-
-  private Query getQueryBySearchText(LocalDate fromDate, LocalDate toDate, String keyword) {
-    var query = new Query();
-
-    query.addCriteria(
+  public Flux<News> findBySearchText(LocalDate startDate, LocalDate endDate, String keyword) {
+    Criteria criteria = new Criteria();
+    criteria.andOperator(
+        where("posting_date").gte(startDate).lt(endDate),
+        where("is_use").is(true),
         new Criteria()
-            .andOperator(
-                where("postingDate").gte(fromDate).lt(toDate),
-                where("is_use").is(true),
-                new Criteria()
-                    .orOperator(
-                        where("newspaper").regex(".*" + keyword.toLowerCase() + ".*", "i"),
-                        where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
-                        where("linkUrl").regex(".*" + keyword.toLowerCase() + ".*", "i")
-                    )
+            .orOperator(
+                where("newspaper").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+                where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+                where("linkUrl").regex(".*" + keyword.toLowerCase() + ".*", "i")
             )
     );
-    return query;
+
+    MatchOperation matchOperation = Aggregation.match(criteria);
+    LookupOperation lookupOperation = Aggregation.lookup("admin_account", "create_account_id", "_id", "account_docs");
+    SortOperation sortOperation = Aggregation.sort(Sort.by("create_date").descending());
+    Aggregation aggregation = Aggregation.newAggregation(
+        matchOperation,
+        lookupOperation,
+        sortOperation
+    );
+
+    return reactiveMongoTemplate.aggregate(aggregation,"cpc_news", News.class);
   }
 }

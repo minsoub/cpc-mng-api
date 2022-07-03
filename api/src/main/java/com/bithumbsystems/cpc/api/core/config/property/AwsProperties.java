@@ -13,6 +13,9 @@ public class AwsProperties {
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
+  @Value("${cloud.aws.s3.board-bucket}")
+  private String boardBucket;
+
   @Value("${cloud.aws.region.static}")
   private String region;
 
