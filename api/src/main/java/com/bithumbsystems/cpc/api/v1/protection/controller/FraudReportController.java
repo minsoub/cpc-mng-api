@@ -13,9 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.time.LocalDate;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -98,24 +96,20 @@ public class FraudReportController {
   @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "첨부 파일 다운로드", description = "사기 신고 관리: 첨부 파일 다운로드", tags = "사기 신고 관리")
   public Mono<ResponseEntity<?>> downloadAttachedFile(@PathVariable String fileKey) {
-    AtomicReference<String> fileName = new AtomicReference<>();
-
     return fraudReportService.getFileInfo(fileKey)
         .flatMap(res -> {
           log.debug("find file => {}", res);
-          fileName.set(res.getFileName());
           // s3에서 파일을 다운로드 받는다.
-          return fraudReportService.downloadFile(fileKey);
-        })
-        .log()
-        .map(inputStream -> {
-          log.debug("finaly result...here");
-          HttpHeaders headers = new HttpHeaders();
-          headers.setContentDispositionFormData(fileName.toString(), fileName.toString());
-          ResponseEntity<?> entity = ResponseEntity.ok().cacheControl(CacheControl.noCache())
-              .headers(headers)
-              .body(new InputStreamResource(inputStream));
-          return entity;
+          return fraudReportService.downloadFile(fileKey).map(inputStream -> {
+            log.debug("finaly result...here");
+            HttpHeaders headers = new HttpHeaders();
+            String fileName = res.getFileName();
+            headers.setContentDispositionFormData(fileName, fileName);
+            ResponseEntity<?> entity = ResponseEntity.ok().cacheControl(CacheControl.noCache())
+                .headers(headers)
+                .body(new InputStreamResource(inputStream));
+            return entity;
+          });
         });
   }
 
@@ -133,15 +127,11 @@ public class FraudReportController {
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
       @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query)
-      throws UnsupportedEncodingException {
-
-    String fileName = URLEncoder.encode("사기신고_다운로드.xlsx", "UTF-8");
-
+      @RequestParam(name = "query", required = false, defaultValue = "") String query) {
     return fraudReportService.downloadExcel(startDate, endDate.plusDays(1), status, query)
-        .log()
         .flatMap(inputStream -> {
           HttpHeaders headers = new HttpHeaders();
+          String fileName = "사기신고_다운로드.xlsx";
           headers.setContentDispositionFormData(fileName, fileName);
           return Mono.just(ResponseEntity.ok().cacheControl(CacheControl.noCache())
               .headers(headers)
