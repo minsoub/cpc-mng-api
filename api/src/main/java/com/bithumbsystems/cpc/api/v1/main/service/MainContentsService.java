@@ -36,9 +36,9 @@ public class MainContentsService {
    * 가상 자산 기초 조회
    * @return
    */
-  public Mono<List<BoardResponse>> getVirtualAssetBasic() {
+  public Mono<List<BoardResponse>> getDigitalAssetBasic() {
     return mainContentsDomainService.findOne()
-        .map(MainContents::getVirtualAssetBasic)
+        .map(MainContents::getDigitalAssetBasic)
         .flatMapMany(it -> Flux.fromIterable(it))
         .concatMap(boardId -> boardDomainService.getBoardData(boardId)
             .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
@@ -64,9 +64,9 @@ public class MainContentsService {
    * 가상 자산 동향 조회
    * @return
    */
-  public Mono<List<BoardResponse>> getVirtualAssetTrends() {
+  public Mono<List<BoardResponse>> getDigitalAssetTrends() {
     return mainContentsDomainService.findOne()
-        .map(MainContents::getVirtualAssetTrends)
+        .map(MainContents::getDigitalAssetTrends)
         .flatMapMany(it -> Flux.fromIterable(it))
         .concatMap(boardId -> boardDomainService.getBoardData(boardId)
             .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
@@ -115,25 +115,4 @@ public class MainContentsService {
         .then()
         .doOnError(throwable -> Mono.error(new MainContentsException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
-
-//  /**
-//   * 선택된 게시글 조회
-//   * @param classification 게시판 구분
-//   * @return
-//   */
-//  public Mono<List<BoardResponse>> getSelectedBoards(String classification) {
-//    switch (classification) {
-//      case "virtualAssetTrends":
-//        return getVirtualAssetTrends();
-//      case "blockchainNews":
-//        return getBlockchainNews();
-//      case "investmentGuide1":
-//        return getInvestmentGuide1();
-//      case "investmentGuide2":
-//        return getInvestmentGuide2();
-//      case "investmentGuide3":
-//        return getInvestmentGuide3();
-//    }
-//    return Mono.error(new MainContentsException(ErrorCode.NOT_FOUND_CONTENT));
-//  }
 }

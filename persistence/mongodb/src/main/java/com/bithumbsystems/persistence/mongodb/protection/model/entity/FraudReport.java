@@ -1,6 +1,8 @@
 package com.bithumbsystems.persistence.mongodb.protection.model.entity;
 
+import com.bithumbsystems.persistence.mongodb.common.model.entity.File;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
@@ -9,6 +11,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -28,8 +31,10 @@ public class FraudReport {
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
+  private Boolean sendToEmail;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
   @LastModifiedDate private LocalDateTime updateDate;
   @LastModifiedBy private String updateAccountId;
+  @DBRef(db = "cpc_files") private List<File> fileDocs;
 }

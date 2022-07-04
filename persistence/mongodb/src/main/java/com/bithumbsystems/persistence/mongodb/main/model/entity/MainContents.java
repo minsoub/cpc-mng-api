@@ -17,9 +17,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class MainContents {
 
   @Id private String id;
-  private List<Long> virtualAssetBasic;
+  private List<Long> digitalAssetBasic;
   private List<Long> insightColumn;
-  private List<Long> virtualAssetTrends;
+  private List<Long> digitalAssetTrends;
   private List<Long> blockchainNews;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;

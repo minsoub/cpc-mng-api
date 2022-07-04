@@ -17,5 +17,6 @@ public class FraudReportRequest {
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
+  private Boolean sendToEmail;
   private String attachFileId;
 }

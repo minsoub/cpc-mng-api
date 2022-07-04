@@ -71,7 +71,7 @@ public class BoardController {
    * @return
    */
   @PostMapping
-  @Operation(summary = "게시판 마스터 등록", description = "통합관리 > 통합게시판 관리 > 게시판 생성: 게시판 마스터 등록", tags = "통합관리 > 통합게시판 관리 > 게시판 생성")
+  @Operation(summary = "게시판 마스터 등록", description = "통합관리 > 통합게시판 관리 > 게시판 생성: 게시판 마스터 등록", tags = "통합관리 > 통합게시판 관리 > 게시판 관리")
   public ResponseEntity<Mono<?>> createBoardMaster(@RequestBody BoardMasterRequest boardMasterRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(boardService.createBoardMaster(boardMasterRequest, account)

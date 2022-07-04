@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,41 +19,6 @@ public class LegalCounselingDomainService {
   private final LegalCounselingRepository legalCounselingRepository;
 
   private final LegalCounselingCustomRepository legalCounselingCustomRepository;
-
-  /**
-   * 법률 상담 등록
-   * @param legalCounseling 법률 상담
-   * @return
-   */
-  public Mono<LegalCounseling> createLegalCounseling(LegalCounseling legalCounseling) {
-    legalCounseling.setCreateDate(LocalDateTime.now());
-    return legalCounselingRepository.insert(legalCounseling);
-  }
-
-  /**
-   * 법률 상담 목록 조회(페이징)
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
-   * @param status 상태
-   * @param keyword 키워드
-   * @param pageable 페이지 정보
-   * @return
-   */
-  public Flux<LegalCounseling> findPageBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword, Pageable pageable) {
-    return legalCounselingCustomRepository.findPageBySearchText(fromDate, toDate, status, keyword, pageable);
-  }
-
-  /**
-   * 법률 상담 목록 건수 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
-   * @param status 상태
-   * @param keyword 키워드
-   * @return
-   */
-  public Mono<Long> countBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    return legalCounselingCustomRepository.countBySearchText(fromDate, toDate, status, keyword);
-  }
 
   /**
    * 법률 상담 목록 조회

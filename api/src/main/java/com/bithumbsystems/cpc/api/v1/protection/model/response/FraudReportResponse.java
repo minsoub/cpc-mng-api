@@ -19,6 +19,8 @@ public class FraudReportResponse {
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
+  private Boolean sendToEmail;
   private String attachFileId;
+  private String attachFileName;
   private LocalDateTime createDate;
 }

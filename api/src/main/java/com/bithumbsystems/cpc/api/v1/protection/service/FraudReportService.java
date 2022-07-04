@@ -39,10 +39,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -104,18 +102,15 @@ public class FraudReportService {
 
   /**
    * 사기 신고 목록 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param keyword 키워드
-   * @param pageRequest 페이지 정보
    * @return
    */
-  public Mono<Page<FraudReport>> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword, PageRequest pageRequest) {
-    return fraudReportDomainService.findPageBySearchText(fromDate, toDate, status, keyword, pageRequest)
-        .collectList()
-        .zipWith(fraudReportDomainService.countBySearchText(fromDate, toDate, status, keyword)
-            .map(c -> c))
-        .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+  public Flux<FraudReportResponse> getFraudReportList(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+    return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
+        .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
+            == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)));
   }
 
   /**
@@ -124,7 +119,9 @@ public class FraudReportService {
    * @return
    */
   public Mono<FraudReportResponse> getFraudReportData(Long id) {
-    return fraudReportDomainService.getFraudReportData(id).map(FraudReportMapper.INSTANCE::toDto)
+    return fraudReportDomainService.getFraudReportData(id)
+        .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
+           == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)))
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
@@ -140,14 +137,16 @@ public class FraudReportService {
         .log()
         .flatMap(fraudReport -> {
           fraudReport.setAnswer(fraudReportRequest.getAnswer());
+          fraudReport.setSendToEmail(fraudReportRequest.getSendToEmail());
           fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
           fraudReport.setUpdateAccountId(account.getAccountId());
           return fraudReportDomainService.updateFraudReport(fraudReport)
-              .map(FraudReportMapper.INSTANCE::toDto);
+              .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
+                  == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)));
         })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(fraudReportResponse -> {
-          if (fraudReportResponse.getAnswerToContacts()) {
+          if (fraudReportResponse.getSendToEmail()) {
             sendMail(fraudReportResponse.getEmail(), fraudReportResponse.getAnswer());
           }
         });
@@ -155,13 +154,13 @@ public class FraudReportService {
 
   /**
    * 사기 신고 목록 엑셀 다운로드
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param keyword 키워드
    * @return
    */
-  public Mono<ByteArrayInputStream> downloadExcel(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    return fraudReportDomainService.getFraudReportList(fromDate, toDate, status, keyword)
+  public Mono<ByteArrayInputStream> downloadExcel(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+    return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
         .flatMap(list -> this.createExcelFile(list));

@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,50 +20,15 @@ public class FraudReportDomainService {
   private final FraudReportCustomRepository fraudReportCustomRepository;
 
   /**
-   * 사기 신고 등록
-   * @param fraudReport 사기 신고
-   * @return
-   */
-  public Mono<FraudReport> createFraudReport(FraudReport fraudReport) {
-    fraudReport.setCreateDate(LocalDateTime.now());
-    return fraudReportRepository.insert(fraudReport);
-  }
-
-  /**
-   * 사기 신고 목록 조회(페이징)
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
-   * @param status 상태
-   * @param keyword 키워드
-   * @param pageable 페이지 정보
-   * @return
-   */
-  public Flux<FraudReport> findPageBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword, Pageable pageable) {
-    return fraudReportCustomRepository.findPageBySearchText(fromDate, toDate, status, keyword, pageable);
-  }
-
-  /**
-   * 사기 신고 목록 건수 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
-   * @param status 상태
-   * @param keyword 키워드
-   * @return
-   */
-  public Mono<Long> countBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    return fraudReportCustomRepository.countBySearchText(fromDate, toDate, status, keyword);
-  }
-
-  /**
    * 사기 신고 목록 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param status 상태
    * @param keyword 키워드
    * @return
    */
-  public Flux<FraudReport> getFraudReportList(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    return fraudReportCustomRepository.findBySearchText(fromDate, toDate, status, keyword);
+  public Flux<FraudReport> findBySearchText(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+    return fraudReportCustomRepository.findBySearchText(startDate, endDate, status, keyword);
   }
 
   /**
@@ -73,7 +37,7 @@ public class FraudReportDomainService {
    * @return
    */
   public Mono<FraudReport> getFraudReportData(Long id) {
-    return fraudReportRepository.findById(id);
+    return fraudReportCustomRepository.findById(id).next();
   }
 
   /**

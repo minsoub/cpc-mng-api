@@ -1,11 +1,10 @@
 package com.bithumbsystems.cpc.api.v1.protection.controller;
 
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.DEFAULT_PAGE_SIZE;
-import static com.bithumbsystems.cpc.api.core.config.constant.GlobalConstant.FIRST_PAGE_NUM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
+import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.protection.model.request.FraudReportRequest;
 import com.bithumbsystems.cpc.api.v1.protection.service.FraudReportService;
@@ -20,8 +19,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.CacheControl;
@@ -46,28 +43,25 @@ public class FraudReportController {
 
   /**
    * 사기 신고 목록 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
-   * @param pageNo 페이지 번호
-   * @param pageSize 페이지 당 표시 건수
    * @return
    */
   @GetMapping
-  @Operation(description = "사기 신고 목록 조회")
+  @Operation(summary = "사기 신고 목록 조회", description = "사기 신고 관리: 사기 신고 목록 조회", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> getFraudReportList(
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query,
-      @RequestParam(name = "page_no", defaultValue = FIRST_PAGE_NUM) int pageNo,
-      @RequestParam(name = "page_size", defaultValue = DEFAULT_PAGE_SIZE) int pageSize)
+      @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(fromDate, toDate.plusDays(1), status, keyword, PageRequest.of(pageNo, pageSize, Sort.by("create_date").descending()))
-        .map(SingleResponse::new));
+    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(startDate, endDate.plusDays(1), status, keyword)
+        .collectList()
+        .map(MultiResponse::new));
   }
 
   /**
@@ -76,7 +70,7 @@ public class FraudReportController {
    * @return
    */
   @GetMapping(value = "/{id}")
-  @Operation(description = "사기 신고 정보 조회")
+  @Operation(summary = "사기 신고 정보 조회", description = "사기 신고 관리: 사기 신고 정보 조회", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> getFraudReportData(@PathVariable Long id) {
     return ResponseEntity.ok().body(fraudReportService.getFraudReportData(id)
         .map(SingleResponse::new));
@@ -89,7 +83,7 @@ public class FraudReportController {
    * @return
    */
   @PutMapping(value = "/{id}")
-  @Operation(description = "사기 신고 답변")
+  @Operation(summary = "사기 신고 답변", description = "사기 신고 관리: 사기 신고 답변", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> updateFraudReport(@RequestBody FraudReportRequest fraudReportRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(fraudReportService.updateFraudReport(fraudReportRequest, account)
@@ -102,6 +96,7 @@ public class FraudReportController {
    * @return
    */
   @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @Operation(summary = "첨부 파일 다운로드", description = "사기 신고 관리: 첨부 파일 다운로드", tags = "사기 신고 관리")
   public Mono<ResponseEntity<?>> downloadAttachedFile(@PathVariable String fileKey) {
     AtomicReference<String> fileName = new AtomicReference<>();
 
@@ -126,23 +121,24 @@ public class FraudReportController {
 
   /**
    * 엑셀 다운로드
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
    * @return
    */
   @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @Operation(summary = "엑셀 다운로드", description = "사기 신고 관리: 엑셀 다운로드", tags = "사기 신고 관리")
   public Mono<ResponseEntity<?>> downloadExcel(
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
 
     String fileName = URLEncoder.encode("사기신고_다운로드.xlsx", "UTF-8");
 
-    return fraudReportService.downloadExcel(fromDate, toDate.plusDays(1), status, query)
+    return fraudReportService.downloadExcel(startDate, endDate.plusDays(1), status, query)
         .log()
         .flatMap(inputStream -> {
           HttpHeaders headers = new HttpHeaders();
