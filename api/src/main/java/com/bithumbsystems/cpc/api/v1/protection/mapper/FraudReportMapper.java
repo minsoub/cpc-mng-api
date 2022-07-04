@@ -20,6 +20,7 @@ public interface FraudReportMapper {
   @Mapping(target = "createAccountId", ignore = true)
   @Mapping(target = "updateDate", ignore = true)
   @Mapping(target = "updateAccountId", ignore = true)
+  @Mapping(target = "fileDocs", ignore = true)
   FraudReport toEntity(FraudReportRequest fraudReportRequest);
 
   @Mapping(target = "id", source = "fraudReport.id")

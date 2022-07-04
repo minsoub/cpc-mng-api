@@ -5,6 +5,7 @@ import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
+import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
 import com.bithumbsystems.cpc.api.core.util.message.MessageService;
@@ -100,14 +101,20 @@ public class LegalCounselingService {
 
   /**
    * 법률 상담 신청 목록 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param keyword 키워드
    * @return
    */
-  public Flux<LegalCounselingResponse> getLegalCounselingList(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    return legalCounselingDomainService.findBySearchText(fromDate, toDate, status, keyword)
-        .map(LegalCounselingMapper.INSTANCE::toDto);
+  public Flux<LegalCounselingResponse> getLegalCounselingList(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+    return legalCounselingDomainService.findBySearchText(startDate, endDate, status, keyword)
+        .map(legalCounseling -> {
+          legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
+          legalCounseling.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getEmail()));
+          legalCounseling.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getCellPhone()));
+          return LegalCounselingMapper.INSTANCE.toDto(legalCounseling, legalCounseling.getFileDocs()
+              == null || legalCounseling.getFileDocs().size() < 1 ? new File() : legalCounseling.getFileDocs().get(0));
+        });
   }
 
   /**
@@ -116,7 +123,14 @@ public class LegalCounselingService {
    * @return
    */
   public Mono<LegalCounselingResponse> getLegalCounselingData(Long id) {
-    return legalCounselingDomainService.getLegalCounselingData(id).map(LegalCounselingMapper.INSTANCE::toDto)
+    return legalCounselingDomainService.getLegalCounselingData(id)
+        .map(legalCounseling -> {
+          legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
+          legalCounseling.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getEmail()));
+          legalCounseling.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getCellPhone()));
+          return LegalCounselingMapper.INSTANCE.toDto(legalCounseling, legalCounseling.getFileDocs()
+              == null || legalCounseling.getFileDocs().size() < 1 ? new File() : legalCounseling.getFileDocs().get(0));
+        })
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
@@ -134,12 +148,17 @@ public class LegalCounselingService {
           legalCounseling.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
           legalCounseling.setUpdateAccountId(account.getAccountId());
           return legalCounselingDomainService.updateLegalCounseling(legalCounseling)
-              .map(LegalCounselingMapper.INSTANCE::toDto);
+              .map(legalCounseling1 -> {
+                legalCounseling1.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getEmail()));
+                return LegalCounselingMapper.INSTANCE.toDto(legalCounseling1, legalCounseling1.getFileDocs()
+                    == null || legalCounseling1.getFileDocs().size() < 1 ? new File() : legalCounseling1.getFileDocs().get(0));
+              });
         })
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(legalCounselingResponse -> {
           if (legalCounselingResponse.getAnswerToContacts()) {
-            sendMail(legalCounselingResponse.getEmail(), legalCounselingResponse.getAnswer());
+            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounselingResponse.getEmail());
+            sendMail(encryptedEmail, legalCounselingResponse.getAnswer());
           }
         });
   }
@@ -153,6 +172,12 @@ public class LegalCounselingService {
    */
   public Mono<ByteArrayInputStream> downloadExcel(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
     return legalCounselingDomainService.findBySearchText(fromDate, toDate, status, keyword)
+        .map(legalCounseling -> {
+          legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
+          legalCounseling.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getEmail()));
+          legalCounseling.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getCellPhone()));
+          return legalCounseling;
+        })
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
         .flatMap(list -> this.createExcelFile(list));

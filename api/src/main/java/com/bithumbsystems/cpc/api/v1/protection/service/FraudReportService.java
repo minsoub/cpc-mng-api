@@ -5,6 +5,7 @@ import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.exception.MailException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
+import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.DateUtil;
 import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
@@ -109,8 +110,11 @@ public class FraudReportService {
    */
   public Flux<FraudReportResponse> getFraudReportList(LocalDate startDate, LocalDate endDate, String status, String keyword) {
     return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
-        .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
-            == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)));
+        .map(fraudReport -> {
+          fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
+          return FraudReportMapper.INSTANCE.toDto(fraudReport, fraudReport.getFileDocs()
+              == null || fraudReport.getFileDocs().size() < 1 ? new File() : fraudReport.getFileDocs().get(0));
+        });
   }
 
   /**
@@ -120,8 +124,11 @@ public class FraudReportService {
    */
   public Mono<FraudReportResponse> getFraudReportData(Long id) {
     return fraudReportDomainService.getFraudReportData(id)
-        .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
-           == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)))
+        .map(fraudReport -> {
+          fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
+          return FraudReportMapper.INSTANCE.toDto(fraudReport, fraudReport.getFileDocs()
+              == null || fraudReport.getFileDocs().size() < 1 ? new File() : fraudReport.getFileDocs().get(0));
+        })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
@@ -147,7 +154,8 @@ public class FraudReportService {
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(fraudReportResponse -> {
           if (fraudReportResponse.getSendToEmail()) {
-            sendMail(fraudReportResponse.getEmail(), fraudReportResponse.getAnswer());
+            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReportResponse.getEmail());
+            sendMail(encryptedEmail, fraudReportResponse.getAnswer());
           }
         });
   }
@@ -161,6 +169,10 @@ public class FraudReportService {
    */
   public Mono<ByteArrayInputStream> downloadExcel(LocalDate startDate, LocalDate endDate, String status, String keyword) {
     return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
+        .map(fraudReport -> {
+          fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
+          return fraudReport;
+        })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
         .flatMap(list -> this.createExcelFile(list));

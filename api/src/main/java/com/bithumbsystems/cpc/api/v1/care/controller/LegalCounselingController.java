@@ -43,8 +43,8 @@ public class LegalCounselingController {
 
   /**
    * 법률 상담 신청 목록 조회
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
    * @return
@@ -52,14 +52,14 @@ public class LegalCounselingController {
   @GetMapping
   @Operation(summary = "법률 상담 신청 목록 조회", description = "법률 상담 관리: 법률 상담 신청 목록 조회", tags = "법률 상담 관리")
   public ResponseEntity<Mono<?>> getLegalCounselingList(
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingList(fromDate, toDate.plusDays(1), status, keyword)
+    return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingList(startDate, endDate.plusDays(1), status, keyword)
         .collectList()
         .map(MultiResponse::new));
   }
@@ -121,8 +121,8 @@ public class LegalCounselingController {
 
   /**
    * 엑셀 다운로드
-   * @param fromDate 검색 시작일자
-   * @param toDate 검색 종료일자
+   * @param startDate 검색 시작일자
+   * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
    * @return
@@ -130,15 +130,15 @@ public class LegalCounselingController {
   @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "엑셀 다운로드", description = "법률 상담 관리: 엑셀 다운로드", tags = "법률 상담 관리")
   public Mono<ResponseEntity<?>> downloadExcel(
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
 
     String fileName = URLEncoder.encode("법률상담신청_다운로드.xlsx", "UTF-8");
 
-    return legalCounselingService.downloadExcel(fromDate, toDate.plusDays(1), status, query)
+    return legalCounselingService.downloadExcel(startDate, endDate.plusDays(1), status, query)
         .log()
         .flatMap(inputStream -> {
           HttpHeaders headers = new HttpHeaders();

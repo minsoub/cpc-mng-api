@@ -39,7 +39,7 @@ public class LegalCounselingDomainService {
    */
   public Mono<LegalCounseling> getLegalCounselingData(Long id) {
     Boolean isUse = true;
-    return legalCounselingRepository.findById(id);
+    return legalCounselingCustomRepository.findById(id).next();
   }
 
   /**

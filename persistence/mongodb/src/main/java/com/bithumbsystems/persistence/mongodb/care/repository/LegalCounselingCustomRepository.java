@@ -8,4 +8,5 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface LegalCounselingCustomRepository {
   Flux<LegalCounseling> findBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword);
+  Flux<LegalCounseling> findById(Long id);
 }

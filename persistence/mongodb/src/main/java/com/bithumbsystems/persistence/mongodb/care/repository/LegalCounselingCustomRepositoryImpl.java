@@ -8,8 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
@@ -22,36 +25,53 @@ public class LegalCounselingCustomRepositoryImpl implements LegalCounselingCusto
   private final ReactiveMongoTemplate reactiveMongoTemplate;
 
   @Override
-  public Flux<LegalCounseling> findBySearchText(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
-    var query = new Query();
+  public Flux<LegalCounseling> findBySearchText(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+    var criteria = new Criteria();
 
     if (StringUtils.hasLength(status)) {
-      query.addCriteria(
+      criteria.andOperator(
+          where("create_date").gte(startDate).lt(endDate),
+          where("status").is(status),
           new Criteria()
-              .andOperator(
-                  where("create_date").gte(fromDate).lt(toDate),
-                  where("status").is(status),
-                  new Criteria()
-                      .orOperator(
-                          where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
-                          where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i")
-                      )
+              .orOperator(
+                  where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+                  where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i")
               )
       );
     } else {
-      query.addCriteria(
+      criteria.andOperator(
+          where("create_date").gte(startDate).lt(endDate),
           new Criteria()
-              .andOperator(
-                  where("create_date").gte(fromDate).lt(toDate),
-                  new Criteria()
-                      .orOperator(
-                          where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
-                          where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i")
-                      )
+              .orOperator(
+                  where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+                  where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i")
               )
       );
     }
-    query.with(Sort.by("create_date").descending());
-    return reactiveMongoTemplate.find(query, LegalCounseling.class);
+
+    MatchOperation matchOperation = Aggregation.match(criteria);
+    LookupOperation lookupOperation = Aggregation.lookup("cpc_files", "attach_file_id", "_id", "file_docs");
+    SortOperation sortOperation = Aggregation.sort(Sort.by("create_date").descending());
+    Aggregation aggregation = Aggregation.newAggregation(
+        matchOperation,
+        lookupOperation,
+        sortOperation
+    );
+
+    return reactiveMongoTemplate.aggregate(aggregation,"cpc_legal_counseling", LegalCounseling.class);
+  }
+
+  @Override
+  public Flux<LegalCounseling> findById(Long id) {
+    MatchOperation matchOperation = Aggregation.match(where("_id").is(id));
+    LookupOperation lookupOperation = Aggregation.lookup("cpc_files", "attach_file_id", "_id", "file_docs");
+    SortOperation sortOperation = Aggregation.sort(Sort.by("create_date").descending());
+    Aggregation aggregation = Aggregation.newAggregation(
+        matchOperation,
+        lookupOperation,
+        sortOperation
+    );
+
+    return reactiveMongoTemplate.aggregate(aggregation,"cpc_legal_counseling", LegalCounseling.class);
   }
 }

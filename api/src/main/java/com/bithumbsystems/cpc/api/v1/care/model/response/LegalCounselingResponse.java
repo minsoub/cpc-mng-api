@@ -18,9 +18,11 @@ public class LegalCounselingResponse {
   private String cellPhone;
   private String contents;
   private String attachFileId;
+  private String attachFileName;
   private Boolean servicePrivacy;
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
+  private Boolean sendToEmail;
   private LocalDateTime createDate;
 }
