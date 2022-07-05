@@ -15,7 +15,7 @@ public class LegalCounselingRequest {
   private String email;
   private String cellPhone;
   private String contents;
-  private Boolean servicePrivacy;
+  private Boolean entrustPrivacy;
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;

@@ -29,7 +29,7 @@ public interface LegalCounselingMapper {
   @Mapping(target = "email", source = "legalCounseling.email")
   @Mapping(target = "cellPhone", source = "legalCounseling.cellPhone")
   @Mapping(target = "contents", source = "legalCounseling.contents")
-  @Mapping(target = "servicePrivacy", source = "legalCounseling.servicePrivacy")
+  @Mapping(target = "entrustPrivacy", source = "legalCounseling.entrustPrivacy")
   @Mapping(target = "termsPrivacy", source = "legalCounseling.termsPrivacy")
   @Mapping(target = "answerToContacts", source = "legalCounseling.answerToContacts")
   @Mapping(target = "answer", source = "legalCounseling.answer")

@@ -14,6 +14,7 @@ public class FraudReportRequest {
   private String email;
   private String title;
   private String contents;
+  private Boolean entrustPrivacy;
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;

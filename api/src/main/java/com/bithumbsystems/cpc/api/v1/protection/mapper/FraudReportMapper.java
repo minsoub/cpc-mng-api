@@ -28,6 +28,7 @@ public interface FraudReportMapper {
   @Mapping(target = "email", source = "fraudReport.email")
   @Mapping(target = "title", source = "fraudReport.title")
   @Mapping(target = "contents", source = "fraudReport.contents")
+  @Mapping(target = "entrustPrivacy", source = "fraudReport.entrustPrivacy")
   @Mapping(target = "termsPrivacy", source = "fraudReport.termsPrivacy")
   @Mapping(target = "answerToContacts", source = "fraudReport.answerToContacts")
   @Mapping(target = "answer", source = "fraudReport.answer")

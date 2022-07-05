@@ -19,7 +19,7 @@ public class LegalCounselingResponse {
   private String contents;
   private String attachFileId;
   private String attachFileName;
-  private Boolean servicePrivacy;
+  private Boolean entrustPrivacy;
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;

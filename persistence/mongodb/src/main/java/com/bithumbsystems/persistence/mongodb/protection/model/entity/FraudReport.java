@@ -28,6 +28,7 @@ public class FraudReport {
   private String title;
   private String contents;
   private String attachFileId;
+  private Boolean entrustPrivacy;
   private Boolean termsPrivacy;
   private Boolean answerToContacts;
   private String answer;
