@@ -234,6 +234,7 @@ public class BoardService {
             board.setIsSetNotice(boardRequest.getIsSetNotice());
             board.setTags(boardRequest.getTags());
             board.setThumbnail(boardRequest.getThumbnail());
+            board.setContributor(boardRequest.getContributor());
             board.setUpdateAccountId(account.getAccountId());
             return boardDomainService.updateBoard(board);
           })
@@ -253,6 +254,7 @@ public class BoardService {
             board.setIsSetNotice(boardRequest.getIsSetNotice());
             board.setTags(boardRequest.getTags());
             board.setThumbnail(boardRequest.getThumbnail());
+            board.setContributor(boardRequest.getContributor());
             board.setUpdateAccountId(account.getAccountId());
             return boardDomainService.updateBoard(board);
           })
