@@ -222,6 +222,8 @@ public class BoardService {
    */
   public Mono<BoardResponse> updateBoard(FilePart filePart, BoardRequest boardRequest, Account account) {
     Long boardId = boardRequest.getId();
+    if (boardRequest.getIsSetNotice() == null)  boardRequest.setIsSetNotice(false);
+
     if (filePart == null) {
       return boardDomainService.getBoardData(boardId)
           .flatMap(board -> {
