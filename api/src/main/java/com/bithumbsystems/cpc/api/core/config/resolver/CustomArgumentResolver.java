@@ -42,7 +42,7 @@ public class CustomArgumentResolver implements HandlerMethodArgumentResolver {
     log.debug(token);
     return reactiveJwtDecoder.decode(token)
         .flatMap((jwt) -> {
-            log.debug("Roel => {}", jwt.getClaimAsString("ROLE"));
+            log.debug("Role => {}", jwt.getClaimAsString("ROLE"));
             // TODO: getSubject 없음, isAnyEmpty는 jsonArray 처리 못함.
           if(StringUtils.isAnyEmpty(jwt.getClaimAsString("account_id") )) { // , jwt.getClaim("ROLE"))) {  // jwt.getSubject(), jwt.getClaimAsString("account_id"), jwt.getClaim("ROLE"))) {
             return Mono.error(new InvalidTokenException(ErrorCode.INVALID_TOKEN));
