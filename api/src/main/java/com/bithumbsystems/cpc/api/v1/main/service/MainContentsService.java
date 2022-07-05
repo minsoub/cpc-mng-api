@@ -42,7 +42,7 @@ public class MainContentsService {
         .flatMapMany(it -> Flux.fromIterable(it))
         .concatMap(boardId -> boardDomainService.getBoardData(boardId)
             .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
-                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
+                == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -56,7 +56,7 @@ public class MainContentsService {
         .flatMapMany(it -> Flux.fromIterable(it))
         .concatMap(boardId -> boardDomainService.getBoardData(boardId)
             .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
-                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
+                == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -70,7 +70,7 @@ public class MainContentsService {
         .flatMapMany(it -> Flux.fromIterable(it))
         .concatMap(boardId -> boardDomainService.getBoardData(boardId)
             .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
-                .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
+                == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0))))
         .collectList();
   }
 
@@ -97,7 +97,7 @@ public class MainContentsService {
   public Flux<BoardListResponse> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
     return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
         .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
-            .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
+            == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
   }
 
   /**

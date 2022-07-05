@@ -50,7 +50,7 @@ public class NewsService {
   public Flux<NewsListResponse> getNewsList(LocalDate startDate, LocalDate endDate, String keyword) {
     return newsDomainService.findBySearchText(startDate, endDate, keyword)
         .map(news -> NewsMapper.INSTANCE.toDtoList(news, news.getAccountDocs()
-            .size() < 1 ? new AdminAccount() : news.getAccountDocs().get(0)));
+            == null || news.getAccountDocs().size() < 1 ? new AdminAccount() : news.getAccountDocs().get(0)));
   }
 
   /**

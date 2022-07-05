@@ -148,7 +148,7 @@ public class BoardService {
   public Flux<BoardListResponse> getBoards(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, String category) {
     return boardDomainService.findBySearchText(boardMasterId, startDate, endDate, keyword, category)
         .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
-            .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
+            == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
   }
 
   /**
@@ -159,7 +159,7 @@ public class BoardService {
   public Mono<BoardResponse> getBoardData(Long boardId) {
     return boardDomainService.getBoardData(boardId)
         .map(board -> BoardMapper.INSTANCE.toDto(board, board.getAccountDocs()
-            .size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)))
+            == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)))
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.NOT_FOUND_CONTENT)));
   }
 
@@ -180,7 +180,7 @@ public class BoardService {
     if (filePart == null) {
       return boardDomainService.createBoard(board)
           .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+              == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
           .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
     } else {
       String fileKey = UUID.randomUUID().toString();
@@ -208,7 +208,7 @@ public class BoardService {
           )
           .map(Tuple2::getT1)
           .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+              == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
           .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
     }
   }
@@ -236,7 +236,7 @@ public class BoardService {
             return boardDomainService.updateBoard(board);
           })
           .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+              == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
           .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));
     } else {
       String fileKey = UUID.randomUUID().toString();
@@ -275,7 +275,7 @@ public class BoardService {
           )
           .map(Tuple2::getT1)
           .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-              .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+              == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
           .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_UPDATE_CONTENT)));
     }
   }
@@ -293,7 +293,7 @@ public class BoardService {
           return boardDomainService.deleteBoard(board);
         })
         .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-            .size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+            == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
   }
 
