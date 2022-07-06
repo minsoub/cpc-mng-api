@@ -269,7 +269,8 @@ public class LegalCounselingService {
       context.setVariable("imgFooterUrl", webRootUrl + "img/email/footer.png");
 
       String html = templateEngine.process("legal-counseling", context);
-      log.info("send mail: " + html);
+      log.info("mail address: {}", email);
+      log.info("send mail: {}", html);
 
       messageService.send(
           MailSenderInfo.builder()
