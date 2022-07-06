@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/fraud-report")
 @RequiredArgsConstructor
-@Tag(name = "Fraud Report APIs", description = "사기 신고 API")
 public class FraudReportController {
   private final FraudReportService fraudReportService;
 

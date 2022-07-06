@@ -40,6 +40,10 @@ public class OpenAPIConfig {
                     "site_id", new HeaderParameter().required(false).name("site_id").description("site_id")
                         .schema(new StringSchema())
                 )
+                .addParameters(
+                    "my_site_id", new HeaderParameter().required(false).name("my_site_id").description("my_site_id")
+                        .schema(new StringSchema())
+                )
         )
         .security(List.of(schemaRequirement));
   }
@@ -50,6 +54,7 @@ public class OpenAPIConfig {
         .forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
               operation.addParametersItem(new HeaderParameter().$ref("#/components/parameters/user_ip"));
               operation.addParametersItem(new HeaderParameter().$ref("#/components/parameters/site_id"));
+              operation.addParametersItem(new HeaderParameter().$ref("#/components/parameters/my_site_id"));
             }));
   }
 }

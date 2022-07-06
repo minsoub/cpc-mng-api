@@ -73,13 +73,13 @@ public class BoardCustomRepositoryImpl implements BoardCustomRepository {
   }
 
   @Override
-  public Flux<Board> findBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
+  public Flux<Board> findBySearchTextForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
     var query = new Query();
     query.addCriteria(
         new Criteria()
             .andOperator(
                 where("board_master_id").is(boardMasterId),
-                where("create_date").gte(fromDate).lt(toDate),
+                where("create_date").gte(startDate).lt(endDate),
                 where("is_use").is(true),
                 where("title").regex(".*" + keyword.toLowerCase() + ".*", "i")
             )

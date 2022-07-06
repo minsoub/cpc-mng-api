@@ -89,13 +89,13 @@ public class MainContentsService {
   /**
    * 메인 화면 컨텐츠용 게시글 목록 조회
    * @param boardMasterId 게시판 ID
-   * @param fromDate 시작 일자
-   * @param toDate 종료 일자
+   * @param startDate 시작 일자
+   * @param endDate 종료 일자
    * @param keyword 키워드
    * @return
    */
-  public Flux<BoardListResponse> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
-    return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
+  public Flux<BoardListResponse> getBoardsForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
+    return boardDomainService.findPageBySearchTextForMain(boardMasterId, startDate, endDate, keyword)
         .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
             == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
   }

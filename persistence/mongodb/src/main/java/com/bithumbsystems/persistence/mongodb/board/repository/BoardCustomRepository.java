@@ -12,5 +12,5 @@ public interface BoardCustomRepository {
 
   Flux<Board> findById(Long boardId);
 
-  Flux<Board> findBySearchTextForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String title);
+  Flux<Board> findBySearchTextForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String title);
 }

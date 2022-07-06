@@ -38,7 +38,6 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/board")
 @RequiredArgsConstructor
-@Tag(name = "Board APIs", description = "게시판 관련 API")
 public class BoardController {
   private final BoardService boardService;
 

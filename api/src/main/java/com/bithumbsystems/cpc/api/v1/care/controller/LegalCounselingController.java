@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/legal-counseling")
 @RequiredArgsConstructor
-@Tag(name = "Legal Counseling APIs", description = "법률 상담 API")
 public class LegalCounselingController {
   private final LegalCounselingService legalCounselingService;
 
