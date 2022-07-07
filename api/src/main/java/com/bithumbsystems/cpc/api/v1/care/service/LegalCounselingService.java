@@ -156,7 +156,9 @@ public class LegalCounselingService {
           legalCounseling.setUpdateAccountId(account.getAccountId());
           return legalCounselingDomainService.updateLegalCounseling(legalCounseling)
               .map(legalCounseling1 -> {
+                legalCounseling1.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getName()));
                 legalCounseling1.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getEmail()));
+                legalCounseling1.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getCellPhone()));
                 return LegalCounselingMapper.INSTANCE.toDto(legalCounseling1, legalCounseling1.getFileDocs()
                     == null || legalCounseling1.getFileDocs().size() < 1 ? new File() : legalCounseling1.getFileDocs().get(0));
               });
@@ -164,9 +166,7 @@ public class LegalCounselingService {
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(legalCounselingResponse -> {
           if (legalCounselingResponse.getAnswerToContacts()) {
-            var encryptedName = AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounselingResponse.getName());
-            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounselingResponse.getEmail());
-            sendMail(encryptedName, encryptedEmail, legalCounselingResponse.getAnswer());
+            sendMail(legalCounselingResponse.getName(), legalCounselingResponse.getEmail(), legalCounselingResponse.getAnswer());
           }
         });
   }
