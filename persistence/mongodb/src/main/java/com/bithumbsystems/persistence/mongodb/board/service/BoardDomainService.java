@@ -102,7 +102,7 @@ public class BoardDomainService {
    * @param keyword 키워드
    * @return
    */
-  public Flux<Board> findPageBySearchTextForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
+  public Flux<Board> findBySearchTextForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
     return boardCustomRepository.findBySearchTextForMain(boardMasterId, startDate, endDate, keyword);
   }
 
