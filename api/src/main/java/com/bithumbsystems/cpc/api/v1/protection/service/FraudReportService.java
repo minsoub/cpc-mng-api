@@ -154,14 +154,16 @@ public class FraudReportService {
           fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
           fraudReport.setUpdateAccountId(account.getAccountId());
           return fraudReportDomainService.updateFraudReport(fraudReport)
-              .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
-                  == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)));
+              .map(fraudReport1 -> {
+                fraudReport1.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport1.getEmail()));
+                return FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
+                    == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0));
+              });
         })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(fraudReportResponse -> {
           if (fraudReportResponse.getSendToEmail()) {
-            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReportResponse.getEmail());
-            sendMail(encryptedEmail, fraudReportResponse.getAnswer());
+            sendMail(fraudReportResponse.getEmail(), fraudReportResponse.getAnswer());
           }
         });
   }
