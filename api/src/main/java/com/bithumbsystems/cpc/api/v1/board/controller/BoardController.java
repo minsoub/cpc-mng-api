@@ -7,6 +7,7 @@ import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
+import com.bithumbsystems.cpc.api.core.model.response.UploaderAnswer;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardMasterRequest;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardRequest;
 import com.bithumbsystems.cpc.api.v1.board.service.BoardService;
@@ -249,6 +250,6 @@ public class BoardController {
   public ResponseEntity<Mono<?>> uploadImage(@RequestPart(value = "files[0]", required = false) FilePart filePart,
       @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(boardService.uploadImage(filePart, account)
-        .map(SingleResponse::new));
+        .map(UploaderAnswer::new));
   }
 }

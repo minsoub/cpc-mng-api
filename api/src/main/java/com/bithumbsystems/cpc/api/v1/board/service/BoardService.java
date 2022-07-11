@@ -4,6 +4,7 @@ import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
+import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.v1.board.exception.BoardException;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMasterMapper;
@@ -15,6 +16,7 @@ import com.bithumbsystems.cpc.api.v1.board.model.response.BoardListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
+import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderData;
 import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
@@ -27,13 +29,16 @@ import java.nio.ByteBuffer;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -55,6 +60,9 @@ public class BoardService {
   private final AwsProperties awsProperties;
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
+
+  @Value("${webserver.board-url}")
+  private String boardBucketUrl;
 
   /**
    * 게시판 유형 조회
@@ -318,18 +326,20 @@ public class BoardService {
   }
 
   /**
-   * 게시글 등록
-   * @param filePart 썸네일이미지 파일
+   * 게시판 파일 업로드
+   * @param filePart 첨부 파일
    * @param account 계정
    * @return
    */
-  public Mono<File> uploadImage(FilePart filePart, Account account) {
-    String fileKey = UUID.randomUUID().toString();
+  public Mono<UploaderData> uploadImage(FilePart filePart, Account account) {
     return DataBufferUtils.join(filePart.content())
           .flatMap(dataBuffer -> {
             ByteBuffer buf = dataBuffer.asByteBuffer();
             String fileName = filePart.filename();
             Long fileSize = (long) buf.array().length;
+            Boolean isImage = FileUtil.isImage(dataBuffer.asInputStream());
+            String extension = FileUtil.getExtension(fileName);
+            String fileKey = UUID.randomUUID().toString() + "." + extension;
 
             return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
                 .flatMap(res -> {
@@ -339,7 +349,14 @@ public class BoardService {
                       .createDate(LocalDateTime.now())
                       .delYn(false)
                       .build();
-                  return fileDomainService.save(info);
+                  return fileDomainService.save(info)
+                      .map(file -> UploaderData.builder()
+                          .files(Arrays.asList(file.getFileKey()))
+                          .isImages(Arrays.asList(isImage))
+                          .path(isImage == false ? "files/" : "")
+                          .baseurl(boardBucketUrl)
+                          .build()
+                      );
                 });
           })
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
