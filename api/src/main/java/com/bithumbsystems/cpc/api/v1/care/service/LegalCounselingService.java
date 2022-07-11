@@ -38,7 +38,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -57,6 +60,10 @@ public class LegalCounselingService {
   private final FileDomainService fileDomainService;
 
   private final MessageService messageService;
+  private final SpringTemplateEngine templateEngine;
+
+  @Value("${webserver.url}")
+  String webRootUrl;
 
   /**
    * 파일 정보 조회
@@ -149,7 +156,9 @@ public class LegalCounselingService {
           legalCounseling.setUpdateAccountId(account.getAccountId());
           return legalCounselingDomainService.updateLegalCounseling(legalCounseling)
               .map(legalCounseling1 -> {
+                legalCounseling1.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getName()));
                 legalCounseling1.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getEmail()));
+                legalCounseling1.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling1.getCellPhone()));
                 return LegalCounselingMapper.INSTANCE.toDto(legalCounseling1, legalCounseling1.getFileDocs()
                     == null || legalCounseling1.getFileDocs().size() < 1 ? new File() : legalCounseling1.getFileDocs().get(0));
               });
@@ -157,8 +166,7 @@ public class LegalCounselingService {
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(legalCounselingResponse -> {
           if (legalCounselingResponse.getAnswerToContacts()) {
-            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounselingResponse.getEmail());
-            sendMail(encryptedEmail, legalCounselingResponse.getAnswer());
+            sendMail(legalCounselingResponse.getName(), legalCounselingResponse.getEmail(), legalCounselingResponse.getAnswer());
           }
         });
   }
@@ -189,76 +197,80 @@ public class LegalCounselingService {
    */
   public Mono<ByteArrayInputStream> createExcelFile(List<LegalCounseling> legalCounselingList) {
     return Mono.fromCallable(() -> {
-          log.debug("엑셀 파일 생성 시작");
+        log.debug("엑셀 파일 생성 시작");
 
-          SXSSFWorkbook workbook = new SXSSFWorkbook(SXSSFWorkbook.DEFAULT_WINDOW_SIZE);  // keep 100 rows in memory, exceeding rows will be flushed to disk
-          ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SXSSFWorkbook workbook = new SXSSFWorkbook(SXSSFWorkbook.DEFAULT_WINDOW_SIZE);  // keep 100 rows in memory, exceeding rows will be flushed to disk
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-          CreationHelper creationHelper = workbook.getCreationHelper();
+        CreationHelper creationHelper = workbook.getCreationHelper();
 
-          Sheet sheet = workbook.createSheet("법률상담");
+        Sheet sheet = workbook.createSheet("법률상담");
 
-          Font headerFont = workbook.createFont();
-          headerFont.setFontName("맑은 고딕");
-          headerFont.setFontHeight((short) (10 * 20));
-          headerFont.setBold(true);
-          headerFont.setColor(IndexedColors.BLACK.index);
+        Font headerFont = workbook.createFont();
+        headerFont.setFontName("맑은 고딕");
+        headerFont.setFontHeight((short) (10 * 20));
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.BLACK.index);
 
-          Font bodyFont = workbook.createFont();
-          bodyFont.setFontName("맑은 고딕");
-          bodyFont.setFontHeight((short) (10 * 20));
+        Font bodyFont = workbook.createFont();
+        bodyFont.setFontName("맑은 고딕");
+        bodyFont.setFontHeight((short) (10 * 20));
 
-          // Cell 스타일 생성
-          CellStyle headerStyle = workbook.createCellStyle();
-          headerStyle.setAlignment(HorizontalAlignment.CENTER);
-          headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-          headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
-          headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-          headerStyle.setFont(headerFont);
+        // Cell 스타일 생성
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setFont(headerFont);
 
-          // Row for Header
-          Row headerRow = sheet.createRow(0);
+        // Row for Header
+        Row headerRow = sheet.createRow(0);
 
-          // Header
-          String[] fields = {"번호", "상태", "이름", "이메일주소", "전화번호", "답변 내용"};
-          for (int col = 0; col < fields.length; col++) {
-            Cell cell = headerRow.createCell(col);
-            cell.setCellValue(fields[col]);
-            cell.setCellStyle(headerStyle);
-          }
+        // Header
+        String[] fields = {"번호", "상태", "이름", "이메일주소", "전화번호", "답변 내용"};
+        for (int col = 0; col < fields.length; col++) {
+          Cell cell = headerRow.createCell(col);
+          cell.setCellValue(fields[col]);
+          cell.setCellStyle(headerStyle);
+        }
 
-          // Body
-          int rowIdx = 1;
-          for (LegalCounseling legalCounseling : legalCounselingList) {
-            Row row = sheet.createRow(rowIdx++);
+        // Body
+        int rowIdx = 1;
+        for (LegalCounseling legalCounseling : legalCounselingList) {
+          Row row = sheet.createRow(rowIdx++);
 
-            row.createCell(0).setCellValue(legalCounseling.getId());  // 번호
-            row.createCell(1).setCellValue(Status.getTitle(legalCounseling.getStatus())); // 상태
-            row.createCell(2).setCellValue(legalCounseling.getName());  // 이름
-            row.createCell(3).setCellValue(legalCounseling.getEmail());  // 이메일주소
-            row.createCell(4).setCellValue(legalCounseling.getCellPhone());  // 전화번호
-            row.createCell(5).setCellValue(legalCounseling.getAnswer());  // 답변 내용
-          }
-          workbook.write(out);
+          row.createCell(0).setCellValue(legalCounseling.getId());  // 번호
+          row.createCell(1).setCellValue(Status.getTitle(legalCounseling.getStatus())); // 상태
+          row.createCell(2).setCellValue(legalCounseling.getName());  // 이름
+          row.createCell(3).setCellValue(legalCounseling.getEmail());  // 이메일주소
+          row.createCell(4).setCellValue(legalCounseling.getCellPhone());  // 전화번호
+          row.createCell(5).setCellValue(legalCounseling.getAnswer());  // 답변 내용
+        }
+        workbook.write(out);
 
-          log.debug("엑셀 파일 생성 종료");
-          return new ByteArrayInputStream(out.toByteArray());
-        })
-        .log();
+        log.debug("엑셀 파일 생성 종료");
+        return new ByteArrayInputStream(out.toByteArray());
+      })
+      .log();
   }
-
-
 
   /**
    * 메일 발송
    * @param email
    */
-  private void sendMail(String email, String contents) {
+  private void sendMail(String name, String email, String contents) {
     try {
-      String html = FileUtil.readResourceFile(MailForm.LEGAL_COUNSELING.getPath())
-          .replace("${{subject}}", MailForm.LEGAL_COUNSELING.getSubject())
-          .replace("${{contents}}", contents);
-      log.info("send mail: " + html);
+      Context context = new Context();
+      context.setVariable("name", name);
+      context.setVariable("email", email);
+      context.setVariable("contents", contents);
+      context.setVariable("imgHeaderUrl", webRootUrl + "img/email/header.png");
+      context.setVariable("imgFooterUrl", webRootUrl + "img/email/footer.png");
+
+      String html = templateEngine.process("legal-counseling", context);
+      log.info("mail address: {}", email);
+      log.info("send mail: {}", html);
 
       messageService.send(
           MailSenderInfo.builder()

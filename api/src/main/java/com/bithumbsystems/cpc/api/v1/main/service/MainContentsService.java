@@ -10,6 +10,7 @@ import com.bithumbsystems.cpc.api.v1.guide.model.response.NewsResponse;
 import com.bithumbsystems.cpc.api.v1.main.exception.MainContentsException;
 import com.bithumbsystems.cpc.api.v1.main.mapper.MainContentsMapper;
 import com.bithumbsystems.cpc.api.v1.main.model.request.MainContentsRequest;
+import com.bithumbsystems.cpc.api.v1.main.model.response.SelectedBoardResponse;
 import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.service.BoardDomainService;
 import com.bithumbsystems.persistence.mongodb.guide.service.NewsDomainService;
@@ -89,15 +90,32 @@ public class MainContentsService {
   /**
    * 메인 화면 컨텐츠용 게시글 목록 조회
    * @param boardMasterId 게시판 ID
-   * @param fromDate 시작 일자
-   * @param toDate 종료 일자
+   * @param startDate 시작 일자
+   * @param endDate 종료 일자
    * @param keyword 키워드
    * @return
    */
-  public Flux<BoardListResponse> getBoardsForMain(String boardMasterId, LocalDate fromDate, LocalDate toDate, String keyword) {
-    return boardDomainService.findPageBySearchTextForMain(boardMasterId, fromDate, toDate, keyword)
-        .map(board -> BoardMapper.INSTANCE.toDtoList(board, board.getAccountDocs()
-            == null || board.getAccountDocs().size() < 1 ? new AdminAccount() : board.getAccountDocs().get(0)));
+  public Flux<SelectedBoardResponse> getBoardsForMain(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword) {
+    if ("CPC_NEWS".equals(boardMasterId)) {
+      return newsDomainService.findBySearchText(startDate, endDate, keyword)
+          .map(news -> SelectedBoardResponse.builder()
+                  .boardMasterId("CPC_NEWS")
+                  .id(news.getId())
+                  .title(news.getTitle())
+                  .createDate(news.getCreateDate())
+                  .build()
+          );
+    }
+    else {
+      return boardDomainService.findBySearchTextForMain(boardMasterId, startDate, endDate, keyword)
+          .map(board -> SelectedBoardResponse.builder()
+              .boardMasterId(board.getBoardMasterId())
+              .id(board.getId())
+              .title(board.getTitle())
+              .createDate(board.getCreateDate())
+              .build()
+          );
+    }
   }
 
   /**

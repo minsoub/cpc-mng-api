@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SelectedBoardResponse {
   private String boardMasterId;
-  private Integer no;
-  private Long boardId;
+  private Long id;
   private String title;
   private LocalDateTime createDate;
 }

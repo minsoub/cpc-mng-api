@@ -67,6 +67,8 @@ spring:
       field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
 logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
+webserver:
+  url: http://localhost:3000/
 
 ---
 server:
@@ -78,6 +80,8 @@ spring:
       on-profile: dev
 logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
+webserver:
+  url: http://k8s-systemsd-cpcappwe-c3110031ec-598124796.ap-northeast-2.elb.amazonaws.com/
 
 ---
 server:
@@ -89,6 +93,8 @@ spring:
       on-profile: eks-dev
 logging:
   config: classpath:logback-spring-dev.xml
+webserver:
+  url: http://k8s-systemsd-cpcappwe-c3110031ec-598124796.ap-northeast-2.elb.amazonaws.com/
 
 ---
 server:
@@ -103,3 +109,5 @@ springdoc:
     enabled: false
 logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
+webserver:
+  url: https://safe.bithumb.com/

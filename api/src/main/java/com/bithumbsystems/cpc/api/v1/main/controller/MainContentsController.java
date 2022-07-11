@@ -31,7 +31,6 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/main")
 @RequiredArgsConstructor
-@Tag(name = "Main APIs", description = "메인 화면 관련 API")
 public class MainContentsController {
 
   private final MainContentsService mainContentsService;
@@ -59,23 +58,23 @@ public class MainContentsController {
   /**
    * 메인 화면 컨텐츠용 게시글 목록 조회
    * @param boardMasterId 게시판 ID
-   * @param fromDate 시작 일자
-   * @param toDate 종료 일자
+   * @param startDate 시작 일자
+   * @param endDate 종료 일자
    * @param query 검색어
    * @return
    */
   @GetMapping("/{boardMasterId}")
   @Operation(summary = "메인 화면 컨텐츠용 게시글 조회", description = "메인 관리 > 콘텐츠 노출 관리: 메인 화면 컨텐츠용 게시글 조회", tags = "메인 관리 > 콘텐츠 노출 관리")
   public ResponseEntity<Mono<?>> getBoardsForMain(@PathVariable String boardMasterId,
-      @RequestParam(name = "from_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate fromDate,
-      @RequestParam(name = "to_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate toDate,
+      @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
+      @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
 
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
 
-    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, fromDate, toDate.plusDays(1), keyword)
+    return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, startDate, endDate.plusDays(1), keyword)
         .collectList()
         .map(MultiResponse::new));
   }

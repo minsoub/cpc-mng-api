@@ -7,7 +7,6 @@ import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.enums.MailForm;
 import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.DateUtil;
-import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
 import com.bithumbsystems.cpc.api.core.util.message.MessageService;
 import com.bithumbsystems.cpc.api.v1.protection.exception.FraudReportException;
@@ -40,7 +39,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -59,6 +61,10 @@ public class FraudReportService {
   private final FileDomainService fileDomainService;
 
   private final MessageService messageService;
+  private final SpringTemplateEngine templateEngine;
+
+  @Value("${webserver.url}")
+  String webRootUrl;
 
   /**
    * 파일 정보 조회
@@ -148,14 +154,16 @@ public class FraudReportService {
           fraudReport.setStatus(Status.COMPLETE.getCode()); // 답변완료 상태
           fraudReport.setUpdateAccountId(account.getAccountId());
           return fraudReportDomainService.updateFraudReport(fraudReport)
-              .map(fraudReport1 -> FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
-                  == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0)));
+              .map(fraudReport1 -> {
+                fraudReport1.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport1.getEmail()));
+                return FraudReportMapper.INSTANCE.toDto(fraudReport1, fraudReport1.getFileDocs()
+                    == null || fraudReport1.getFileDocs().size() < 1 ? new File() : fraudReport1.getFileDocs().get(0));
+              });
         })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.FAIL_UPDATE_CONTENT)))
         .doOnSuccess(fraudReportResponse -> {
           if (fraudReportResponse.getSendToEmail()) {
-            var encryptedEmail = AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReportResponse.getEmail());
-            sendMail(encryptedEmail, fraudReportResponse.getAnswer());
+            sendMail(fraudReportResponse.getEmail(), fraudReportResponse.getAnswer());
           }
         });
   }
@@ -250,9 +258,13 @@ public class FraudReportService {
    */
   private void sendMail(String email, String contents) {
     try {
-      String html = FileUtil.readResourceFile(MailForm.FRAUD_REPORT.getPath())
-          .replace("${{subject}}", MailForm.FRAUD_REPORT.getSubject())
-          .replace("${{contents}}", contents);
+      Context context = new Context();
+      context.setVariable("email", email);
+      context.setVariable("contents", contents);
+      context.setVariable("imgHeaderUrl", webRootUrl + "img/email/header.png");
+      context.setVariable("imgFooterUrl", webRootUrl + "img/email/footer.png");
+
+      String html = templateEngine.process("fraud-report", context);
       log.info("send mail: " + html);
 
       messageService.send(

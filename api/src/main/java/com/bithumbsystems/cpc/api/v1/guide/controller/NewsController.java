@@ -32,7 +32,6 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/news")
 @RequiredArgsConstructor
-@Tag(name = "News APIs", description = "뉴스 관련 API")
 public class NewsController {
 
   private final NewsService newsService;

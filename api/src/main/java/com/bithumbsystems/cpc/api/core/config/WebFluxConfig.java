@@ -52,6 +52,7 @@ public class WebFluxConfig implements WebFluxConfigurer {
   public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
     configurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper()));
     configurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper()));
+    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024);
   }
 
   @Bean
