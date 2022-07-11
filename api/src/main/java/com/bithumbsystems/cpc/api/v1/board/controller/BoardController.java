@@ -238,4 +238,17 @@ public class BoardController {
         Mono.just(new SingleResponse()))
     );
   }
+
+  /**
+   * 이미지 업로드
+   * @param filePart 이미지 파일
+   * @return
+   */
+  @PostMapping(value = "/upload", consumes = MULTIPART_FORM_DATA_VALUE)
+  @Operation(summary = "이미지 업로드", description = "AWS S3에 이미지 업로드", tags = "게시판 화면 공통")
+  public ResponseEntity<Mono<?>> uploadImage(@RequestPart(value = "files[0]", required = false) FilePart filePart,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(boardService.uploadImage(filePart, account)
+        .map(SingleResponse::new));
+  }
 }

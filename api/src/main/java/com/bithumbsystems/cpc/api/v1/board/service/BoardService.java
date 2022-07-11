@@ -318,6 +318,34 @@ public class BoardService {
   }
 
   /**
+   * 게시글 등록
+   * @param filePart 썸네일이미지 파일
+   * @param account 계정
+   * @return
+   */
+  public Mono<File> uploadImage(FilePart filePart, Account account) {
+    String fileKey = UUID.randomUUID().toString();
+    return DataBufferUtils.join(filePart.content())
+          .flatMap(dataBuffer -> {
+            ByteBuffer buf = dataBuffer.asByteBuffer();
+            String fileName = filePart.filename();
+            Long fileSize = (long) buf.array().length;
+
+            return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
+                .flatMap(res -> {
+                  File info = File.builder()
+                      .fileKey(fileKey)
+                      .fileName(Normalizer.normalize(fileName, Normalizer.Form.NFC))
+                      .createDate(LocalDateTime.now())
+                      .delYn(false)
+                      .build();
+                  return fileDomainService.save(info);
+                });
+          })
+        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
+  }
+
+  /**
    * S3 File Upload
    *
    * @param fileKey
