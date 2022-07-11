@@ -17,6 +17,7 @@ import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterListRespons
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderData;
+import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderDataInfo;
 import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
@@ -327,21 +328,21 @@ public class BoardService {
 
   /**
    * 게시판 파일 업로드
-   * @param filePart 첨부 파일
-   * @param account 계정
+   * @param fileParts 첨부 파일
    * @return
    */
-  public Mono<UploaderData> uploadImage(FilePart filePart, Account account) {
-    return DataBufferUtils.join(filePart.content())
+  public Mono<UploaderData> uploadImage(Flux<FilePart> fileParts) {
+    return fileParts.flatMap(filePart ->
+        DataBufferUtils.join(filePart.content())
           .flatMap(dataBuffer -> {
             ByteBuffer buf = dataBuffer.asByteBuffer();
             String fileName = filePart.filename();
             Long fileSize = (long) buf.array().length;
             Boolean isImage = FileUtil.isImage(dataBuffer.asInputStream());
             String extension = FileUtil.getExtension(fileName);
-            String fileKey = UUID.randomUUID().toString() + "." + extension;
+            String fileKey = UUID.randomUUID() + "." + extension;
 
-            return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
+            return uploadFile("files/" + fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
                 .flatMap(res -> {
                   File info = File.builder()
                       .fileKey(fileKey)
@@ -350,15 +351,22 @@ public class BoardService {
                       .delYn(false)
                       .build();
                   return fileDomainService.save(info)
-                      .map(file -> UploaderData.builder()
-                          .files(Arrays.asList(file.getFileKey()))
-                          .isImages(Arrays.asList(isImage))
-                          .path(isImage == false ? "files/" : "")
-                          .baseurl(boardBucketUrl)
+                      .map(file -> UploaderDataInfo.builder()
+                          .file(file.getFileKey())
+                          .isImage(isImage)
                           .build()
                       );
                 });
-          })
+          }))
+        .log()
+        .collectList()
+        .map(list ->
+          UploaderData.builder()
+              .files(list.stream().map(UploaderDataInfo::getFile).collect(Collectors.toList()))
+              .isImages(list.stream().map(UploaderDataInfo::getIsImage).collect(Collectors.toList()))
+              .baseurl(boardBucketUrl + "files/")
+              .build()
+        )
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
 
