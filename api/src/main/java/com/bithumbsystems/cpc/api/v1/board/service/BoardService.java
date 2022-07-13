@@ -40,6 +40,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -332,6 +333,7 @@ public class BoardService {
             Long fileSize = (long) buf.array().length;
 
             return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
+                .publishOn(Schedulers.parallel())
                 .flatMap(res -> {
                   File info = File.builder()
                       .fileKey(fileKey)
