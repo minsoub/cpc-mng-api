@@ -69,6 +69,7 @@ logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
 webserver:
   url: http://localhost:3000/
+  board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
 
 ---
 server:
@@ -82,6 +83,7 @@ logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
 webserver:
   url: http://k8s-systemsd-cpcappwe-c3110031ec-598124796.ap-northeast-2.elb.amazonaws.com/
+  board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
 
 ---
 server:
@@ -95,6 +97,7 @@ logging:
   config: classpath:logback-spring-dev.xml
 webserver:
   url: http://k8s-systemsd-cpcappwe-c3110031ec-598124796.ap-northeast-2.elb.amazonaws.com/
+  board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
 
 ---
 server:
@@ -111,3 +114,4 @@ logging:
   config: classpath:logback-spring-${spring.profiles.active}.xml
 webserver:
   url: https://safe.bithumb.com/
+  board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/

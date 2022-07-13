@@ -4,6 +4,7 @@ import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
+import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.v1.board.exception.BoardException;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMasterMapper;
@@ -15,6 +16,8 @@ import com.bithumbsystems.cpc.api.v1.board.model.response.BoardListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterListResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
+import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderData;
+import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderDataInfo;
 import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
@@ -27,20 +30,22 @@ import java.nio.ByteBuffer;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -56,6 +61,9 @@ public class BoardService {
   private final AwsProperties awsProperties;
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
+
+  @Value("${webserver.board-url}")
+  private String boardBucketUrl;
 
   /**
    * 게시판 유형 조회
@@ -319,21 +327,22 @@ public class BoardService {
   }
 
   /**
-   * 게시글 등록
-   * @param filePart 썸네일이미지 파일
-   * @param account 계정
+   * 게시판 파일 업로드
+   * @param fileParts 첨부 파일
    * @return
    */
-  public Mono<File> uploadImage(FilePart filePart, Account account) {
-    String fileKey = UUID.randomUUID().toString();
-    return DataBufferUtils.join(filePart.content())
+  public Mono<UploaderData> uploadImage(Flux<FilePart> fileParts) {
+    return fileParts.flatMap(filePart ->
+        DataBufferUtils.join(filePart.content())
           .flatMap(dataBuffer -> {
             ByteBuffer buf = dataBuffer.asByteBuffer();
             String fileName = filePart.filename();
             Long fileSize = (long) buf.array().length;
+            Boolean isImage = FileUtil.isImage(dataBuffer.asInputStream());
+            String extension = FileUtil.getExtension(fileName);
+            String fileKey = UUID.randomUUID() + "." + extension;
 
-            return uploadFile(fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
-                .publishOn(Schedulers.parallel())
+            return uploadFile("files/" + fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
                 .flatMap(res -> {
                   File info = File.builder()
                       .fileKey(fileKey)
@@ -341,9 +350,23 @@ public class BoardService {
                       .createDate(LocalDateTime.now())
                       .delYn(false)
                       .build();
-                  return fileDomainService.save(info);
+                  return fileDomainService.save(info)
+                      .map(file -> UploaderDataInfo.builder()
+                          .file(file.getFileKey())
+                          .isImage(isImage)
+                          .build()
+                      );
                 });
-          })
+          }))
+        .log()
+        .collectList()
+        .map(list ->
+          UploaderData.builder()
+              .files(list.stream().map(UploaderDataInfo::getFile).collect(Collectors.toList()))
+              .isImages(list.stream().map(UploaderDataInfo::getIsImage).collect(Collectors.toList()))
+              .baseurl(boardBucketUrl + "files/")
+              .build()
+        )
         .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_CREATE_CONTENT)));
   }
 

@@ -6,7 +6,7 @@ metadata:
   labels:
     app: cpc-mng-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: cpc-mng-api

@@ -6,7 +6,7 @@ cloud:
       auto: ${aws.stack.auto:false}
     s3:
       bucket: ${aws.s3.bucket:cpc-dev-bucket}
-      board-bucket: ${aws.s3.bucket:systems-board}
+      board-bucket: ${aws.s3.board-bucket:systems-board}
     region:
       static: ${aws.region:ap-northeast-2}
       auto: ${aws.region.auto:false}

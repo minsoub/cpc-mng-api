@@ -7,6 +7,7 @@ import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
+import com.bithumbsystems.cpc.api.core.model.response.UploaderAnswer;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardMasterRequest;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardRequest;
 import com.bithumbsystems.cpc.api.v1.board.service.BoardService;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -241,14 +243,13 @@ public class BoardController {
 
   /**
    * 이미지 업로드
-   * @param filePart 이미지 파일
+   * @param fileParts 이미지 파일
    * @return
    */
   @PostMapping(value = "/upload", consumes = MULTIPART_FORM_DATA_VALUE)
   @Operation(summary = "이미지 업로드", description = "AWS S3에 이미지 업로드", tags = "게시판 화면 공통")
-  public ResponseEntity<Mono<?>> uploadImage(@RequestPart(value = "files[0]", required = false) FilePart filePart,
-      @Parameter(hidden = true) @CurrentUser Account account) {
-    return ResponseEntity.ok().body(boardService.uploadImage(filePart, account)
-        .map(SingleResponse::new));
+  public ResponseEntity<Mono<?>> uploadImage(@RequestPart("files") Flux<FilePart> fileParts) {
+    return ResponseEntity.ok().body(boardService.uploadImage(fileParts)
+        .map(UploaderAnswer::new));
   }
 }
