@@ -38,7 +38,6 @@ public class LegalCounselingDomainService {
    * @return
    */
   public Mono<LegalCounseling> getLegalCounselingData(Long id) {
-    Boolean isUse = true;
     return legalCounselingCustomRepository.findById(id).next();
   }
 
@@ -49,6 +48,7 @@ public class LegalCounselingDomainService {
    */
   public Mono<LegalCounseling> updateLegalCounseling(LegalCounseling legalCounseling) {
     legalCounseling.setUpdateDate(LocalDateTime.now());
+    legalCounseling.setFileDocs(null);
     return legalCounselingRepository.save(legalCounseling);
   }
 }
