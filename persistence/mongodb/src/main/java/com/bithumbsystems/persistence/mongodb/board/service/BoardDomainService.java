@@ -122,6 +122,7 @@ public class BoardDomainService {
    */
   public Mono<Board> updateBoard(Board board) {
     board.setUpdateDate(LocalDateTime.now());
+    board.setAccountDocs(null);
     return boardRepository.save(board);
   }
 
@@ -133,6 +134,7 @@ public class BoardDomainService {
   public Mono<Board> deleteBoard(Board board) {
     board.setIsUse(false);
     board.setUpdateDate(LocalDateTime.now());
+    board.setAccountDocs(null);
     return boardRepository.save(board);
   }
 }

@@ -47,6 +47,7 @@ public class FraudReportDomainService {
    */
   public Mono<FraudReport> updateFraudReport(FraudReport fraudReport) {
     fraudReport.setUpdateDate(LocalDateTime.now());
+    fraudReport.setFileDocs(null);
     return fraudReportRepository.save(fraudReport);
   }
 }

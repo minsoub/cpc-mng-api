@@ -59,6 +59,7 @@ public class NewsDomainService {
    */
   public Mono<News> updateNews(News news) {
     news.setUpdateDate(LocalDateTime.now());
+    news.setAccountDocs(null);
     return newsRepository.save(news);
   }
 
@@ -70,6 +71,7 @@ public class NewsDomainService {
   public Mono<News> deleteNews(News news) {
     news.setIsUse(false);
     news.setUpdateDate(LocalDateTime.now());
+    news.setAccountDocs(null);
     return newsRepository.save(news);
   }
 }
