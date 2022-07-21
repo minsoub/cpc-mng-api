@@ -16,11 +16,12 @@ import java.time.LocalDateTime;
 public class AccessLog {
     @MongoId
     private String id;
-    private String account_id;
+    private String accountId;
     private String email;
     private String ip;
-    private ActionType action_type;
+    private ActionType actionType;
     private String reason;
     private String description;
-    private LocalDateTime create_date;
+    private String siteId;
+    private LocalDateTime createDate;
 }

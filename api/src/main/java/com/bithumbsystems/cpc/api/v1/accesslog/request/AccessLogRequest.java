@@ -17,4 +17,5 @@ public class AccessLogRequest {
     private ActionType actionType;
     private String reason;
     private String description;
+    private String siteId;
 }

@@ -24,6 +24,7 @@ import java.util.UUID;
  *                         .actionType(ActionType.VIEW)
  *                         .reason('다운로드 사유 입력')
  *                         .description('간략한 업무명')
+ *                         .siteId(mysiteid)
  *                         .build()
  *         );
  */
@@ -38,12 +39,13 @@ public class AccessLogListener {
 
         accessLogDomainService.insert(AccessLog.builder()
                 .id(UUID.randomUUID().toString())
-                .account_id(accessLogRequest.getAccountId())
+                .accountId(accessLogRequest.getAccountId())
                 .email(accessLogRequest.getEmail())
-                .action_type(accessLogRequest.getActionType())
+                .actionType(accessLogRequest.getActionType())
                 .reason(accessLogRequest.getReason())
                 .description(accessLogRequest.getDescription())
-                .create_date(LocalDateTime.now())
+                .siteId(accessLogRequest.getSiteId())
+                .createDate(LocalDateTime.now())
                 .build()).publishOn(Schedulers.boundedElastic()).subscribe();
     }
 }
