@@ -44,6 +44,7 @@ public class FraudReportController {
    * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
+   * @param account 계정
    * @return
    */
   @GetMapping
@@ -52,11 +53,12 @@ public class FraudReportController {
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
       @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query)
+      @RequestParam(name = "query", required = false, defaultValue = "") String query,
+      @Parameter(hidden = true) @CurrentUser Account account)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
     log.info("keyword: {}", keyword);
-    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(startDate, endDate.plusDays(1), status, keyword)
+    return ResponseEntity.ok().body(fraudReportService.getFraudReportList(startDate, endDate.plusDays(1), status, keyword, account)
         .collectList()
         .map(MultiResponse::new));
   }
@@ -64,12 +66,13 @@ public class FraudReportController {
   /**
    * 사기 신고 정보 조회
    * @param id ID
+   * @param account 계정
    * @return
    */
   @GetMapping(value = "/{id}")
   @Operation(summary = "사기 신고 정보 조회", description = "사기 신고 관리: 사기 신고 정보 조회", tags = "사기 신고 관리")
-  public ResponseEntity<Mono<?>> getFraudReportData(@PathVariable Long id) {
-    return ResponseEntity.ok().body(fraudReportService.getFraudReportData(id)
+  public ResponseEntity<Mono<?>> getFraudReportData(@PathVariable Long id, @Parameter(hidden = true) @CurrentUser Account account) {
+    return ResponseEntity.ok().body(fraudReportService.getFraudReportData(id, account)
         .map(SingleResponse::new));
   }
 
@@ -118,6 +121,8 @@ public class FraudReportController {
    * @param endDate 검색 종료일자
    * @param status 상태
    * @param query 검색어
+   * @param reason 다운로드 사유
+   * @param account 계정
    * @return
    */
   @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
@@ -126,8 +131,10 @@ public class FraudReportController {
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
       @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate endDate,
       @RequestParam(name = "status", required = false) String status,
-      @RequestParam(name = "query", required = false, defaultValue = "") String query) {
-    return fraudReportService.downloadExcel(startDate, endDate.plusDays(1), status, query)
+      @RequestParam(name = "query", required = false, defaultValue = "") String query,
+      @RequestParam(name = "reason") String reason,
+      @Parameter(hidden = true) @CurrentUser Account account) {
+    return fraudReportService.downloadExcel(startDate, endDate.plusDays(1), status, query, reason, account)
         .flatMap(inputStream -> {
           HttpHeaders headers = new HttpHeaders();
           String fileName = "사기신고_다운로드.xlsx";

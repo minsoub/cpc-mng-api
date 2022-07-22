@@ -9,11 +9,13 @@ import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.FileUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
 import com.bithumbsystems.cpc.api.core.util.message.MessageService;
+import com.bithumbsystems.cpc.api.v1.accesslog.request.AccessLogRequest;
 import com.bithumbsystems.cpc.api.v1.care.exception.LegalCounselingException;
 import com.bithumbsystems.cpc.api.v1.care.mapper.LegalCounselingMapper;
 import com.bithumbsystems.cpc.api.v1.care.model.enums.Status;
 import com.bithumbsystems.cpc.api.v1.care.model.request.LegalCounselingRequest;
 import com.bithumbsystems.cpc.api.v1.care.model.response.LegalCounselingResponse;
+import com.bithumbsystems.persistence.mongodb.accesslog.model.enums.ActionType;
 import com.bithumbsystems.persistence.mongodb.care.model.entity.LegalCounseling;
 import com.bithumbsystems.persistence.mongodb.care.service.LegalCounselingDomainService;
 import com.bithumbsystems.persistence.mongodb.common.model.entity.File;
@@ -39,6 +41,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -64,6 +67,8 @@ public class LegalCounselingService {
 
   @Value("${webserver.url}")
   String webRootUrl;
+
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
    * 파일 정보 조회
@@ -111,9 +116,10 @@ public class LegalCounselingService {
    * @param startDate 검색 시작일자
    * @param endDate 검색 종료일자
    * @param keyword 키워드
+   * @param account 계정
    * @return
    */
-  public Flux<LegalCounselingResponse> getLegalCounselingList(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+  public Flux<LegalCounselingResponse> getLegalCounselingList(LocalDate startDate, LocalDate endDate, String status, String keyword, Account account) {
     return legalCounselingDomainService.findBySearchText(startDate, endDate, status, keyword)
         .map(legalCounseling -> {
           legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
@@ -121,15 +127,17 @@ public class LegalCounselingService {
           legalCounseling.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getCellPhone()));
           return LegalCounselingMapper.INSTANCE.toDto(legalCounseling, legalCounseling.getFileDocs()
               == null || legalCounseling.getFileDocs().size() < 1 ? new File() : legalCounseling.getFileDocs().get(0));
-        });
+        })
+        .doOnComplete(() -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
   }
 
   /**
    * 법률 상담 신청 조회
    * @param id ID
+   * @param account 계정
    * @return
    */
-  public Mono<LegalCounselingResponse> getLegalCounselingData(Long id) {
+  public Mono<LegalCounselingResponse> getLegalCounselingData(Long id, Account account) {
     return legalCounselingDomainService.getLegalCounselingData(id)
         .map(legalCounseling -> {
           legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
@@ -138,7 +146,8 @@ public class LegalCounselingService {
           return LegalCounselingMapper.INSTANCE.toDto(legalCounseling, legalCounseling.getFileDocs()
               == null || legalCounseling.getFileDocs().size() < 1 ? new File() : legalCounseling.getFileDocs().get(0));
         })
-        .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.NOT_FOUND_CONTENT)));
+        .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.NOT_FOUND_CONTENT)))
+        .doFinally(v -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
   }
 
   /**
@@ -176,9 +185,11 @@ public class LegalCounselingService {
    * @param fromDate 검색 시작일자
    * @param toDate 검색 종료일자
    * @param keyword 키워드
+   * @param reason 다운로드 사유
+   * @param account 계정
    * @return
    */
-  public Mono<ByteArrayInputStream> downloadExcel(LocalDate fromDate, LocalDate toDate, String status, String keyword) {
+  public Mono<ByteArrayInputStream> downloadExcel(LocalDate fromDate, LocalDate toDate, String status, String keyword, String reason, Account account) {
     return legalCounselingDomainService.findBySearchText(fromDate, toDate, status, keyword)
         .map(legalCounseling -> {
           legalCounseling.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), legalCounseling.getName()));
@@ -188,7 +199,8 @@ public class LegalCounselingService {
         })
         .switchIfEmpty(Mono.error(new LegalCounselingException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
-        .flatMap(list -> this.createExcelFile(list));
+        .flatMap(list -> this.createExcelFile(list))
+        .doFinally(v -> sendPrivacyAccessLog(ActionType.DOWNLOAD, reason, account));
   }
 
   /**
@@ -282,5 +294,23 @@ public class LegalCounselingService {
     } catch (MessagingException | IOException e) {
       throw new MailException(ErrorCode.FAIL_SEND_MAIL);
     }
+  }
+
+  /**
+   * 개인정보 접근 로그 발송
+   * @param account
+   */
+  private void sendPrivacyAccessLog(ActionType actionType, String reason, Account account) {
+    applicationEventPublisher.publishEvent(
+        AccessLogRequest.builder()
+            .email(account.getEmail())
+            .accountId(account.getAccountId())
+            .ip(account.getUserIp())
+            .actionType(actionType)
+            .reason(reason)
+            .description("고객보호센터 - 법률 상담 신청")
+            .siteId(account.getMySiteId())
+            .build()
+    );
   }
 }

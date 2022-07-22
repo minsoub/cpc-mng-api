@@ -9,11 +9,13 @@ import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.DateUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
 import com.bithumbsystems.cpc.api.core.util.message.MessageService;
+import com.bithumbsystems.cpc.api.v1.accesslog.request.AccessLogRequest;
 import com.bithumbsystems.cpc.api.v1.protection.exception.FraudReportException;
 import com.bithumbsystems.cpc.api.v1.protection.mapper.FraudReportMapper;
 import com.bithumbsystems.cpc.api.v1.protection.model.enums.Status;
 import com.bithumbsystems.cpc.api.v1.protection.model.request.FraudReportRequest;
 import com.bithumbsystems.cpc.api.v1.protection.model.response.FraudReportResponse;
+import com.bithumbsystems.persistence.mongodb.accesslog.model.enums.ActionType;
 import com.bithumbsystems.persistence.mongodb.common.model.entity.File;
 import com.bithumbsystems.persistence.mongodb.common.service.FileDomainService;
 import com.bithumbsystems.persistence.mongodb.protection.model.entity.FraudReport;
@@ -40,6 +42,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -65,6 +68,8 @@ public class FraudReportService {
 
   @Value("${webserver.url}")
   String webRootUrl;
+
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
    * 파일 정보 조회
@@ -112,30 +117,34 @@ public class FraudReportService {
    * @param startDate 검색 시작일자
    * @param endDate 검색 종료일자
    * @param keyword 키워드
+   * @param account 계정
    * @return
    */
-  public Flux<FraudReportResponse> getFraudReportList(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+  public Flux<FraudReportResponse> getFraudReportList(LocalDate startDate, LocalDate endDate, String status, String keyword, Account account) {
     return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
         .map(fraudReport -> {
           fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
           return FraudReportMapper.INSTANCE.toDto(fraudReport, fraudReport.getFileDocs()
               == null || fraudReport.getFileDocs().size() < 1 ? new File() : fraudReport.getFileDocs().get(0));
-        });
+        })
+        .doOnComplete(() -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
   }
 
   /**
    * 사기 신고 조회
    * @param id ID
+   * @param account 계정
    * @return
    */
-  public Mono<FraudReportResponse> getFraudReportData(Long id) {
+  public Mono<FraudReportResponse> getFraudReportData(Long id, Account account) {
     return fraudReportDomainService.getFraudReportData(id)
         .map(fraudReport -> {
           fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
           return FraudReportMapper.INSTANCE.toDto(fraudReport, fraudReport.getFileDocs()
               == null || fraudReport.getFileDocs().size() < 1 ? new File() : fraudReport.getFileDocs().get(0));
         })
-        .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)));
+        .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)))
+        .doFinally(v -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
   }
 
   /**
@@ -173,9 +182,11 @@ public class FraudReportService {
    * @param startDate 검색 시작일자
    * @param endDate 검색 종료일자
    * @param keyword 키워드
+   * @param reason 다운로드 사유
+   * @param account 계정
    * @return
    */
-  public Mono<ByteArrayInputStream> downloadExcel(LocalDate startDate, LocalDate endDate, String status, String keyword) {
+  public Mono<ByteArrayInputStream> downloadExcel(LocalDate startDate, LocalDate endDate, String status, String keyword, String reason, Account account) {
     return fraudReportDomainService.findBySearchText(startDate, endDate, status, keyword)
         .map(fraudReport -> {
           fraudReport.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), fraudReport.getEmail()));
@@ -183,7 +194,8 @@ public class FraudReportService {
         })
         .switchIfEmpty(Mono.error(new FraudReportException(ErrorCode.NOT_FOUND_CONTENT)))
         .collectList()
-        .flatMap(list -> this.createExcelFile(list));
+        .flatMap(list -> this.createExcelFile(list))
+        .doFinally(v -> sendPrivacyAccessLog(ActionType.DOWNLOAD, reason, account));
   }
 
   /**
@@ -277,5 +289,23 @@ public class FraudReportService {
     } catch (MessagingException | IOException e) {
       throw new MailException(ErrorCode.FAIL_SEND_MAIL);
     }
+  }
+
+  /**
+   * 개인정보 접근 로그 발송
+   * @param account
+   */
+  private void sendPrivacyAccessLog(ActionType actionType, String reason, Account account) {
+    applicationEventPublisher.publishEvent(
+        AccessLogRequest.builder()
+            .email(account.getEmail())
+            .accountId(account.getAccountId())
+            .ip(account.getUserIp())
+            .actionType(actionType)
+            .reason(reason)
+            .description("고객보호센터 - 사기 신고")
+            .siteId(account.getMySiteId())
+            .build()
+    );
   }
 }
