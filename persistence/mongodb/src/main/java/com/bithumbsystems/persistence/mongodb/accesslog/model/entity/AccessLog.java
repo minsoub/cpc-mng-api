@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 
-@Document(collection = "primary_access_log")
+@Document(collection = "private_access_log")
 @AllArgsConstructor
 @Data
 @Builder
