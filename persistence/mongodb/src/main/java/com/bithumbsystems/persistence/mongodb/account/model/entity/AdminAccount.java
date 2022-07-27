@@ -23,6 +23,7 @@ public class AdminAccount {
     private String oldPassword;
     private String otpSecretKey;
     private LocalDateTime lastLoginDate;
+    private Long loginFailCount;
     private Status status;
     private Boolean isUse;
     private LocalDateTime lastPasswordUpdateDate;
