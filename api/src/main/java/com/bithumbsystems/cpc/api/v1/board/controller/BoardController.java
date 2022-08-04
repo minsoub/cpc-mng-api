@@ -8,12 +8,12 @@ import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.core.model.response.UploaderAnswer;
+import com.bithumbsystems.cpc.api.core.util.ValidationUtils;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardMasterRequest;
 import com.bithumbsystems.cpc.api.v1.board.model.request.BoardRequest;
 import com.bithumbsystems.cpc.api.v1.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.LocalDate;
@@ -187,6 +187,12 @@ public class BoardController {
       @RequestPart(value = "file", required = false) FilePart filePart,
       @Parameter(hidden = true) @CurrentUser Account account) {
     boardRequest.setBoardMasterId(boardMasterId);
+
+    if (filePart != null) {
+      String[] ALLOW_FILE_EXT = {"PNG", "GIF", "JPG", "JPEG"};
+      ValidationUtils.assertAllowFileExt(filePart.filename(), ALLOW_FILE_EXT);
+    }
+
     return ResponseEntity.ok().body(boardService.createBoard(filePart, boardRequest, account)
         .map(SingleResponse::new));
   }
@@ -205,6 +211,12 @@ public class BoardController {
       @RequestPart(value = "boardRequest") BoardRequest boardRequest,
       @RequestPart(value = "file", required = false) FilePart filePart,
       @Parameter(hidden = true) @CurrentUser Account account) {
+
+    if (filePart != null) {
+      String[] ALLOW_FILE_EXT = {"PNG", "GIF", "JPG", "JPEG"};
+      ValidationUtils.assertAllowFileExt(filePart.filename(), ALLOW_FILE_EXT);
+    }
+
     return ResponseEntity.ok().body(boardService.updateBoard(filePart, boardRequest, account)
         .map(SingleResponse::new));
   }
@@ -242,12 +254,12 @@ public class BoardController {
   }
 
   /**
-   * 이미지 업로드
+   * 이미지/파일 업로드
    * @param fileParts 이미지 파일
    * @return
    */
   @PostMapping(value = "/upload", consumes = MULTIPART_FORM_DATA_VALUE)
-  @Operation(summary = "이미지 업로드", description = "AWS S3에 이미지 업로드", tags = "게시판 화면 공통")
+  @Operation(summary = "이미지/파일 업로드", description = "AWS S3에 이미지/파일 업로드", tags = "게시판 화면 공통")
   public ResponseEntity<Mono<?>> uploadImage(@RequestPart("files") Flux<FilePart> fileParts) {
     return ResponseEntity.ok().body(boardService.uploadImage(fileParts)
         .map(UploaderAnswer::new));

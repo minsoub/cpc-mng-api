@@ -18,7 +18,13 @@ public enum ErrorCode {
   DUPLICATE_KEY_ERROR("F008", "duplicate key error"),
   TIMEOUT_ERROR("F009", "timeout error"),
   EXCEL_DOWNLOAD_ERROR("F011", "excel download error"),
-  FAIL_SEND_MAIL("M411","FAIL_SEND_MAIL");
+  FAIL_SEND_MAIL("M411","FAIL_SEND_MAIL"),
+
+  INVALID_EMAIL_FORMAT("F012", "잘못된 이메일 형식입니다. 이메일 주소를 확인해 주세요."),
+  INVALID_NAME_FORMAT("F013", "이름에는 특수문자를 포함할 수 없습니다."),
+  INVALID_PHONE_FORMAT("F014", "잘못된 휴대폰번호 형식입니다. 휴대폰번호를 확인해 주세요."),
+  NOT_ALLOWED_FILE_EXT("F015", "허용되지 않은 파일 확장자입니다. 파일을 확인해 주세요."),
+  NOT_ALLOWED_FILE_SIZE("F016", "첨부가능한 파일 크기를 초과했습니다.");
 
   private final String code;
   private final String message;

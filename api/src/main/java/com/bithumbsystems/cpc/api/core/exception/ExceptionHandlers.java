@@ -30,4 +30,12 @@ public class ExceptionHandlers {
     ErrorData errorData = new ErrorData(ErrorCode.DUPLICATE_KEY_ERROR);
     return ResponseEntity.internalServerError().body(Mono.just(new ErrorResponse(errorData)));
   }
+
+  @ExceptionHandler(InvalidParameterException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<Mono<?>> serverExceptionHandler(InvalidParameterException ex) {
+    log.error(ex.getMessage(), ex);
+    ErrorData errorData = new ErrorData(ex.getErrorCode());
+    return ResponseEntity.badRequest().body(Mono.just(new ErrorResponse(errorData)));
+  }
 }

@@ -5,6 +5,7 @@ import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.model.enums.EnumMapperValue;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.util.FileUtil;
+import com.bithumbsystems.cpc.api.core.util.ValidationUtils;
 import com.bithumbsystems.cpc.api.v1.board.exception.BoardException;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMapper;
 import com.bithumbsystems.cpc.api.v1.board.mapper.BoardMasterMapper;
@@ -341,6 +342,12 @@ public class BoardService {
             Boolean isImage = FileUtil.isImage(dataBuffer.asInputStream());
             String extension = FileUtil.getExtension(fileName);
             String fileKey = UUID.randomUUID() + "." + extension;
+
+            String[] ALLOW_FILE_EXT = {"PNG", "GIF", "JPG", "JPEG", "PDF"};
+            ValidationUtils.assertAllowFileExt(fileName, ALLOW_FILE_EXT);
+
+            Long maxFileSize = Long.valueOf(100 * 1024 * 1024); // 100MB
+            ValidationUtils.assertAllowFileSize(fileSize, maxFileSize);
 
             return uploadFile("files/" + fileKey, fileName, fileSize, awsProperties.getBoardBucket(), buf)
                 .flatMap(res -> {
