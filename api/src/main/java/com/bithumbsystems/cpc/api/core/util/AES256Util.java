@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.core.util;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -42,7 +43,9 @@ public class AES256Util {
 
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       int bsize = cipher.getBlockSize();
-      IvParameterSpec ivspec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, bsize));
+      byte[] iv = Arrays.copyOfRange(keyBytes, 0, bsize);
+      new SecureRandom().nextBytes(iv);
+      IvParameterSpec ivspec = new IvParameterSpec(iv);
 
       SecretKeySpec secureKey = new SecretKeySpec(keyBytes, "AES");
       cipher.init(Cipher.ENCRYPT_MODE, secureKey, ivspec);
