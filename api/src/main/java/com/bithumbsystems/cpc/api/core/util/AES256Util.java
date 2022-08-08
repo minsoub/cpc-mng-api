@@ -40,7 +40,7 @@ public class AES256Util {
       byte[] keyBytes = keyString.getBytes(StandardCharsets.UTF_8);
       byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
 
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       int bsize = cipher.getBlockSize();
       IvParameterSpec ivspec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, bsize));
 
@@ -86,7 +86,7 @@ public class AES256Util {
       byte[] keyBytes = keyString.getBytes(StandardCharsets.UTF_8);
       byte[] cipherTextBytes = Base64.decodeBase64(cipherText.getBytes(StandardCharsets.UTF_8));
 
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       int bsize = cipher.getBlockSize();
       IvParameterSpec ivspec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, bsize));
 
