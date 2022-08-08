@@ -57,7 +57,7 @@ public class LegalCounselingController {
       @Parameter(hidden = true) @CurrentUser Account account)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
-    log.info("keyword: {}", keyword);
+    log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
     return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingList(startDate, endDate.plusDays(1), status, keyword, account)
         .collectList()
         .map(MultiResponse::new));

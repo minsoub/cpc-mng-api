@@ -63,7 +63,7 @@ public class NewsController {
       @RequestParam(name = "query", required = false, defaultValue = "") String query)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
-    log.info("keyword: {}", keyword);
+    log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
     return ResponseEntity.ok().body(newsService.getNewsList(startDate, endDate.plusDays(1), keyword)
         .collectList()
         .map(MultiResponse::new));

@@ -72,7 +72,7 @@ public class MainContentsController {
       throws UnsupportedEncodingException {
 
     String keyword = URLDecoder.decode(query, "UTF-8");
-    log.info("keyword: {}", keyword);
+    log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
 
     return ResponseEntity.ok().body(mainContentsService.getBoardsForMain(boardMasterId, startDate, endDate.plusDays(1), keyword)
         .collectList()

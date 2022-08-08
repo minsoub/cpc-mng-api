@@ -151,9 +151,9 @@ public class BoardController {
       @RequestParam(name = "category", required = false, defaultValue = "") String category)
       throws UnsupportedEncodingException {
     String keyword = URLDecoder.decode(query, "UTF-8");
-    log.info("keyword: {}", keyword);
+    log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
     String decodingCategory = URLDecoder.decode(category, "UTF-8");
-    log.info("category: {}", decodingCategory);
+    log.info("category: {}", decodingCategory.replaceAll("[\r\n]",""));
 
     return ResponseEntity.ok().body(boardService.getBoards(boardMasterId, startDate, endDate.plusDays(1), keyword, decodingCategory)
         .collectList()
