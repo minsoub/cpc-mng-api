@@ -1,7 +1,6 @@
 package com.bithumbsystems.cpc.api.core.util;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -14,9 +13,6 @@ import org.apache.commons.codec.binary.Base64;
  */
 @Slf4j
 public class AES256Util {
-
-  public static final String CLIENT_AES_KEY_ADM = "fWISVCRBVpGh25HCS1U3a6bwqYewKUop";
-  public static final String CLIENT_AES_KEY_CPC = "X996K2nG3QrDi5Cjyu9aATBoeuTM54m2";
 
   /**
    * Encrypt (AES)
@@ -41,11 +37,9 @@ public class AES256Util {
       byte[] keyBytes = keyString.getBytes(StandardCharsets.UTF_8);
       byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
 
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       int bsize = cipher.getBlockSize();
-      byte[] iv = Arrays.copyOfRange(keyBytes, 0, bsize);
-      new SecureRandom().nextBytes(iv);
-      IvParameterSpec ivspec = new IvParameterSpec(iv);
+      IvParameterSpec ivspec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, bsize));
 
       SecretKeySpec secureKey = new SecretKeySpec(keyBytes, "AES");
       cipher.init(Cipher.ENCRYPT_MODE, secureKey, ivspec);
@@ -89,7 +83,7 @@ public class AES256Util {
       byte[] keyBytes = keyString.getBytes(StandardCharsets.UTF_8);
       byte[] cipherTextBytes = Base64.decodeBase64(cipherText.getBytes(StandardCharsets.UTF_8));
 
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       int bsize = cipher.getBlockSize();
       IvParameterSpec ivspec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, bsize));
 
