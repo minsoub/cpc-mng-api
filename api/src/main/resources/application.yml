@@ -20,9 +20,6 @@ application:
   role-type: ADMIN
   site-id: 62a15f4ae4129b518b133128
 
-jwt:
-  secret: ${cpc.api.jwt.secret:eyJzdWIiOiJtaW5zb3ViQGJpdGh1bWJzeXN0ZW1zLmNvbSIsIm5hbWUiOiJCaXRodW1iU3lzdGVtcyIsImlhdCI6MjA5OTEyMzExMjF9.Lpo86rOQtvBRfVKDGhICUWuZ92rgBIVPM9PVAUiRhAM}
-
 management:
   endpoints:
     web:

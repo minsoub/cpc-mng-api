@@ -36,14 +36,14 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
 public class WebFluxConfig implements WebFluxConfigurer {
 
   private final ApplicationProperties applicationProperties;
-  private final ReactiveJwtDecoder reactiveJwtDecoder;
+  private final SecurityConfig securityConfig;
 
   @Override
   public void configurePathMatching(PathMatchConfigurer configurer) {
     configurer.addPathPrefix( applicationProperties.getPrefix() + applicationProperties.getVersion() + applicationProperties.getProject()
-        , (path) -> Arrays
+        , path -> Arrays
             .stream(applicationProperties.getExcludePrefixPath())
-            .anyMatch(p -> !(path.getName().indexOf(p) > 0))
+            .anyMatch(p -> path.getName().indexOf(p) <= 0)
     );
   }
 
@@ -84,7 +84,7 @@ public class WebFluxConfig implements WebFluxConfigurer {
   @Override
   public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
     WebFluxConfigurer.super.configureArgumentResolvers(configurer);
-    CustomArgumentResolver customArgumentResolver = new CustomArgumentResolver(reactiveJwtDecoder);
+    CustomArgumentResolver customArgumentResolver = new CustomArgumentResolver(securityConfig.reactiveJwtDecoder());
     configurer.addCustomResolver(customArgumentResolver);
   }
 }

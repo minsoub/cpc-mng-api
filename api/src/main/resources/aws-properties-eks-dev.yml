@@ -18,6 +18,8 @@ cloud:
       doc-name: docdb
       kms-name: kms
       message-name: message
+      auth-name: auth
+
 
 logging:
   level:

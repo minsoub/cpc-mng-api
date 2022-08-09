@@ -5,6 +5,7 @@ import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreCons
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_PORT;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_URL;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_USER;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.JWT_SECRET_KEY;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.KMS_ALIAS_NAME;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.MAIL_SENDER;
 
@@ -58,6 +59,7 @@ public class ParameterStoreConfig {
         // KMS Parameter Key
         this.awsProperties.setKmsKey(getParameterValue(awsProperties.getParamStoreKmsName(), KMS_ALIAS_NAME));
         this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
+        this.awsProperties.setJwtSecretKey(getParameterValue(awsProperties.getParamStoreAuthName(), JWT_SECRET_KEY));
     }
 
     protected String getParameterValue(String storeName, String type) {
