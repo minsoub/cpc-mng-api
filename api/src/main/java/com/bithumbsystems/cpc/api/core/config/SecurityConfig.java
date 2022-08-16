@@ -1,8 +1,10 @@
 package com.bithumbsystems.cpc.api.core.config;
 
+import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.exception.InvalidTokenException;
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -19,14 +21,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-  @Value("${jwt.secret}")
-  private String secret;
+  private final AwsProperties awsProperties;
 
-  @Bean
   public ReactiveJwtDecoder reactiveJwtDecoder() {
-    SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(), MacAlgorithm.HS512.getName());
+    SecretKeySpec secretKey = new SecretKeySpec(awsProperties.getJwtSecretKey().getBytes(), MacAlgorithm.HS512.getName());
 
     return NimbusReactiveJwtDecoder.withSecretKey(secretKey)
         .macAlgorithm(MacAlgorithm.HS512)

@@ -5,6 +5,7 @@ import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreCons
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_PORT;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_URL;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.DB_USER;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.JWT_SECRET_KEY;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.KMS_ALIAS_NAME;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.MAIL_SENDER;
 
@@ -16,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
@@ -58,7 +60,11 @@ public class LocalParameterStoreConfig {
 
     // KMS Parameter Key
     this.awsProperties.setKmsKey(getParameterValue(awsProperties.getParamStoreKmsName(), KMS_ALIAS_NAME));
+    this.awsProperties.setSaltKey(getParameterValue(awsProperties.getParamStoreSaltName(), KMS_ALIAS_NAME));
+    this.awsProperties.setIvKey(getParameterValue(awsProperties.getParamStoreIvName(), KMS_ALIAS_NAME));
+    log.debug(">> DB Crypto:{}, {}, {}", this.awsProperties.getKmsKey(), this.awsProperties.getSaltKey(), this.awsProperties.getIvKey());
     this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
+    this.awsProperties.setJwtSecretKey(getParameterValue(awsProperties.getParamStoreAuthName(), JWT_SECRET_KEY));
   }
 
   protected String getParameterValue(String storeName, String type) {

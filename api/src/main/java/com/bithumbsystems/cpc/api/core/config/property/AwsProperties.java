@@ -27,11 +27,20 @@ public class AwsProperties {
 
   @Value("${cloud.aws.param-store.kms-name}")
   private String paramStoreKmsName;
-
+  @Value("${cloud.aws.param-store.salt-name}")
+  private String paramStoreSaltName;
+  @Value("${cloud.aws.param-store.iv-name}")
+  private String paramStoreIvName;
   @Value("${cloud.aws.param-store.message-name}")
   private String paramStoreMessageName;
 
+  @Value("${cloud.aws.param-store.auth-name}")
+  private String paramStoreAuthName;
+
   private String kmsKey;
+  private String saltKey;
+  private String ivKey;
   private String emailSender;
+  private String jwtSecretKey;
 
 }
