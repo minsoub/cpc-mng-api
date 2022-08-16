@@ -77,7 +77,7 @@ spring:
     activate:
       on-profile: eks-dev
 logging:
-  config: classpath:logback-spring-dev.xml
+  config: classpath:logback-spring-${spring.profiles.active}.xml
 webserver:
   url: http://k8s-systemsd-cpcappwe-c3110031ec-598124796.ap-northeast-2.elb.amazonaws.com/
   board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
