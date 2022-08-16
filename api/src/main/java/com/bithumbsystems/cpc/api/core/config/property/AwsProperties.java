@@ -19,6 +19,9 @@ public class AwsProperties {
   @Value("${cloud.aws.region.static}")
   private String region;
 
+  @Value("${cloud.aws.ssm.endpoint}")
+  private String ssmEndPoint;
+
   @Value("${cloud.aws.param-store.prefix}")
   private String prefix;
 

@@ -8,6 +8,8 @@ cloud:
     s3:
       bucket: ${aws.s3.bucket:bithumb-bs-dev-cpc-bucket}
       board-bucket: ${aws.s3.board-bucket:bithumb-bs-dev-systems-board}
+    ssm:
+      endpoint: https://vpce-070145c4242d28466-s63o0xw2.ssm.ap-northeast-2.vpce.amazonaws.com
     region:
       static: ${aws.region:ap-northeast-2}
       auto: ${aws.region.auto:false}
