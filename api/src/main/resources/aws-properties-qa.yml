@@ -10,6 +10,10 @@ cloud:
       board-bucket: ${aws.s3.board-bucket:bithumb-bs-dev-systems-board}
     ssm:
       endpoint: https://vpce-04326400aef7645c7-kdwr2h83.ssm.ap-northeast-2.vpce.amazonaws.com
+    ses:
+      endpoint: https://ses.ap-northeast-2.amazonaws.com
+    kms:
+      endpoint: https://vpce-08afe93a2964ce800-2gp1tcsw.kms.ap-northeast-2.vpce.amazonaws.com
     region:
       static: ${aws.region:ap-northeast-2}
       auto: ${aws.region.auto:false}
