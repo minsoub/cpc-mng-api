@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.ses.SesClient;
 @Getter
 @Setter
 @Configuration
-@Profile("dev|prod|eks-dev")
+@Profile("dev|qa|prod|eks-dev")
 @RequiredArgsConstructor
 public class AwsConfig {
 

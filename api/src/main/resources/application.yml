@@ -84,7 +84,7 @@ webserver:
 
 ---
 server:
-  port: 80
+  port: 8080
 spring:
   config:
     import: classpath:aws-properties-dev.yml, classpath:springdoc.yml
@@ -98,7 +98,7 @@ webserver:
 
 ---
 server:
-  port: 80
+  port: 8080
 spring:
   config:
     import: classpath:aws-properties-qa.yml, classpath:springdoc.yml
@@ -112,7 +112,7 @@ webserver:
 
 ---
 server:
-  port: 80
+  port: 8080
 spring:
   config:
     import: classpath:aws-properties-prod.yml
