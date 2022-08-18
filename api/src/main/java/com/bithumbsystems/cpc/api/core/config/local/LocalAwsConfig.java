@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.core.config.local;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import java.net.URI;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class LocalAwsConfig {
     public SesClient sesClient() {
         return SesClient.builder()
             .region(Region.of(awsProperties.getRegion()))
+            .endpointOverride(URI.create(awsProperties.getSesEndPoint()))
             .credentialsProvider(ProfileCredentialsProvider.create(profileName))
             .build();
     }
@@ -50,6 +52,7 @@ public class LocalAwsConfig {
     public void init() {
         kmsAsyncClient = KmsAsyncClient.builder()
             .region(Region.of(awsProperties.getRegion()))
+            .endpointOverride(URI.create(awsProperties.getKmsEndPoint()))
             .credentialsProvider(ProfileCredentialsProvider.create(profileName))
             .build();
 

@@ -1,7 +1,7 @@
 cloud:
   aws:
     credentials:
-      profile-name: ${aws.default.profile:dev}
+      profile-name: ${aws.default.profile:qa}
       instanceProfile: true
     stack:
       auto: ${aws.stack.auto:false}
@@ -9,11 +9,11 @@ cloud:
       bucket: ${aws.s3.bucket:bithumb-bs-dev-cpc-bucket}
       board-bucket: ${aws.s3.board-bucket:bithumb-bs-dev-systems-board}
     ssm:
-      endpoint: https://vpce-070145c4242d28466-s63o0xw2.ssm.ap-northeast-2.vpce.amazonaws.com
+      endpoint: https://vpce-04326400aef7645c7-kdwr2h83.ssm.ap-northeast-2.vpce.amazonaws.com
     ses:
       endpoint: https://ses.ap-northeast-2.amazonaws.com
     kms:
-      endpoint: https://vpce-0d2252033d361bfff-9zm8y5uq.kms.ap-northeast-2.vpce.amazonaws.com
+      endpoint: https://vpce-08afe93a2964ce800-2gp1tcsw.kms.ap-northeast-2.vpce.amazonaws.com
     region:
       static: ${aws.region:ap-northeast-2}
       auto: ${aws.region.auto:false}
@@ -24,9 +24,6 @@ cloud:
       doc-name: docdb
       kms-name: kms
       message-name: message
-      auth-name: auth
-      salt-name: salt
-      iv-name: iv
 
 logging:
   level:

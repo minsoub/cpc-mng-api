@@ -1,6 +1,7 @@
 package com.bithumbsystems.cpc.api.core.config;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
+import java.net.URI;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import software.amazon.awssdk.services.ses.SesClient;
 @Getter
 @Setter
 @Configuration
-@Profile("dev|prod|eks-dev")
+@Profile("dev|qa|prod|eks-dev")
 @RequiredArgsConstructor
 public class AwsConfig {
 
@@ -41,6 +42,7 @@ public class AwsConfig {
     public SesClient sesClient() {
         return SesClient.builder()
             .region(Region.of(awsProperties.getRegion()))
+            .endpointOverride(URI.create(awsProperties.getSesEndPoint()))
             .build();
     }
 
@@ -48,6 +50,7 @@ public class AwsConfig {
     public void init() {
         kmsAsyncClient = KmsAsyncClient.builder()
             .region(Region.of(awsProperties.getRegion()))
+            .endpointOverride(URI.create(awsProperties.getKmsEndPoint()))
             .build();
     }
 }

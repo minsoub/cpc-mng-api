@@ -19,6 +19,15 @@ public class AwsProperties {
   @Value("${cloud.aws.region.static}")
   private String region;
 
+  @Value("${cloud.aws.ssm.endpoint}")
+  private String ssmEndPoint;
+
+  @Value("${cloud.aws.ses.endpoint}")
+  private String sesEndPoint;
+
+  @Value("${cloud.aws.kms.endpoint}")
+  private String kmsEndPoint;
+
   @Value("${cloud.aws.param-store.prefix}")
   private String prefix;
 
@@ -27,7 +36,10 @@ public class AwsProperties {
 
   @Value("${cloud.aws.param-store.kms-name}")
   private String paramStoreKmsName;
-
+  @Value("${cloud.aws.param-store.salt-name}")
+  private String paramStoreSaltName;
+  @Value("${cloud.aws.param-store.iv-name}")
+  private String paramStoreIvName;
   @Value("${cloud.aws.param-store.message-name}")
   private String paramStoreMessageName;
 
@@ -35,6 +47,8 @@ public class AwsProperties {
   private String paramStoreAuthName;
 
   private String kmsKey;
+  private String saltKey;
+  private String ivKey;
   private String emailSender;
   private String jwtSecretKey;
 

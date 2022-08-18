@@ -11,6 +11,7 @@ import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreCons
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.property.MongoProperties;
+import java.net.URI;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -24,7 +25,7 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 
 @Log4j2
 @Data
-@Profile("dev|prod|eks-dev")
+@Profile("dev|qa|prod|eks-dev")
 @Configuration
 public class ParameterStoreConfig {
 
@@ -46,6 +47,7 @@ public class ParameterStoreConfig {
 
         this.ssmClient = SsmClient.builder()
             .region(Region.of(awsProperties.getRegion()))
+            .endpointOverride(URI.create(awsProperties.getSsmEndPoint()))
             .build();
 
         this.mongoProperties = new MongoProperties(
@@ -58,6 +60,8 @@ public class ParameterStoreConfig {
 
         // KMS Parameter Key
         this.awsProperties.setKmsKey(getParameterValue(awsProperties.getParamStoreKmsName(), KMS_ALIAS_NAME));
+        this.awsProperties.setSaltKey(getParameterValue(awsProperties.getParamStoreSaltName(), KMS_ALIAS_NAME));
+        this.awsProperties.setIvKey(getParameterValue(awsProperties.getParamStoreIvName(), KMS_ALIAS_NAME));
         this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
         this.awsProperties.setJwtSecretKey(getParameterValue(awsProperties.getParamStoreAuthName(), JWT_SECRET_KEY));
     }

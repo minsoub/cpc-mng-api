@@ -11,13 +11,13 @@ import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreCons
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.property.MongoProperties;
+import java.net.URI;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
@@ -48,6 +48,7 @@ public class LocalParameterStoreConfig {
     this.ssmClient = SsmClient.builder()
         .credentialsProvider(credentialsProvider.getProvider()) // 로컬에서 개발로 붙을때 사용
         .region(Region.of(awsProperties.getRegion()))
+        .endpointOverride(URI.create(awsProperties.getSsmEndPoint()))
         .build();
 
     this.mongoProperties = new MongoProperties(
@@ -60,6 +61,9 @@ public class LocalParameterStoreConfig {
 
     // KMS Parameter Key
     this.awsProperties.setKmsKey(getParameterValue(awsProperties.getParamStoreKmsName(), KMS_ALIAS_NAME));
+    this.awsProperties.setSaltKey(getParameterValue(awsProperties.getParamStoreSaltName(), KMS_ALIAS_NAME));
+    this.awsProperties.setIvKey(getParameterValue(awsProperties.getParamStoreIvName(), KMS_ALIAS_NAME));
+    log.debug(">> DB Crypto:{}, {}, {}", this.awsProperties.getKmsKey(), this.awsProperties.getSaltKey(), this.awsProperties.getIvKey());
     this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
     this.awsProperties.setJwtSecretKey(getParameterValue(awsProperties.getParamStoreAuthName(), JWT_SECRET_KEY));
   }
