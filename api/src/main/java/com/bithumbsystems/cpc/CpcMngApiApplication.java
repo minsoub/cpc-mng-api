@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
@@ -27,6 +28,8 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 public class CpcMngApiApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(CpcMngApiApplication.class, args);
+    SpringApplication app = new SpringApplication(CpcMngApiApplication.class);
+    app.addListeners(new ApplicationPidFileWriter());
+    app.run(args);
   }
 }
