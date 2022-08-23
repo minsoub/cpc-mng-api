@@ -24,6 +24,9 @@ cloud:
       doc-name: docdb
       kms-name: kms
       message-name: message
+      auth-name: auth
+      salt-name: salt
+      iv-name: iv
 
 logging:
   level:
