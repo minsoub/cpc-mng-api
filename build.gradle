@@ -17,9 +17,11 @@ bootRun {
     }
 }
 
+var suffix = (project.hasProperty('profile') && project.property("profile").toString() == 'prod') ? 'RELEASE' : 'SNAPSHOT'
+
 allprojects {
     group = 'com.bithumbsystems'
-    version = '0.0.1-SNAPSHOT'
+    version = '0.0.1-' + suffix
     sourceCompatibility = '11'
 
     apply plugin: 'java'
