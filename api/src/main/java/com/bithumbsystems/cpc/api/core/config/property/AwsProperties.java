@@ -49,7 +49,14 @@ public class AwsProperties {
   private String kmsKey;
   private String saltKey;
   private String ivKey;
+  @Value("${cloud.aws.ses.port}")
+  private String smtpPort;
+  @Setter
   private String emailSender;
+  @Setter
+  private String smtpUserName;
+  @Setter
+  private String smtpUserPassword;
   private String jwtSecretKey;
 
 }

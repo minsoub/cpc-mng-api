@@ -14,7 +14,6 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsAsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.ses.SesClient;
 
 @Slf4j
 @Getter
@@ -35,15 +34,6 @@ public class LocalAwsConfig {
     public S3AsyncClient s3client() {
         return S3AsyncClient.builder()
             .region(Region.of(awsProperties.getRegion()))
-            .credentialsProvider(ProfileCredentialsProvider.create(profileName))
-            .build();
-    }
-
-    @Bean
-    public SesClient sesClient() {
-        return SesClient.builder()
-            .region(Region.of(awsProperties.getRegion()))
-            .endpointOverride(URI.create(awsProperties.getSesEndPoint()))
             .credentialsProvider(ProfileCredentialsProvider.create(profileName))
             .build();
     }

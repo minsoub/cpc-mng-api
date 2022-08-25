@@ -8,6 +8,8 @@ import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreCons
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.JWT_SECRET_KEY;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.KMS_ALIAS_NAME;
 import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.MAIL_SENDER;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.SMTP_PASSWORD;
+import static com.bithumbsystems.cpc.api.core.config.constant.ParameterStoreConstant.SMTP_USERNAME;
 
 import com.bithumbsystems.cpc.api.core.config.property.AwsProperties;
 import com.bithumbsystems.cpc.api.core.config.property.MongoProperties;
@@ -66,6 +68,9 @@ public class LocalParameterStoreConfig {
     log.debug(">> DB Crypto:{}, {}, {}", this.awsProperties.getKmsKey(), this.awsProperties.getSaltKey(), this.awsProperties.getIvKey());
     this.awsProperties.setEmailSender(getParameterValue(awsProperties.getParamStoreMessageName(), MAIL_SENDER));
     this.awsProperties.setJwtSecretKey(getParameterValue(awsProperties.getParamStoreAuthName(), JWT_SECRET_KEY));
+    this.awsProperties.setSmtpUserName(getParameterValue(awsProperties.getParamStoreMessageName(), SMTP_USERNAME));
+    this.awsProperties.setSmtpUserPassword(getParameterValue(awsProperties.getParamStoreMessageName(), SMTP_PASSWORD));
+
   }
 
   protected String getParameterValue(String storeName, String type) {
