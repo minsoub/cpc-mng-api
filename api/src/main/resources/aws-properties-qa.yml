@@ -6,8 +6,8 @@ cloud:
     stack:
       auto: ${aws.stack.auto:false}
     s3:
-      bucket: ${aws.s3.bucket:bithumb-bs-dev-cpc-bucket}
-      board-bucket: ${aws.s3.board-bucket:bithumb-bs-dev-systems-board}
+      bucket: ${aws.s3.bucket:bithumb-bs-qa-cpc-bucket}
+      board-bucket: ${aws.s3.board-bucket:bithumb-bs-qa-systems-board}
     ssm:
       endpoint: https://vpce-04326400aef7645c7-kdwr2h83.ssm.ap-northeast-2.vpce.amazonaws.com
     ses:
