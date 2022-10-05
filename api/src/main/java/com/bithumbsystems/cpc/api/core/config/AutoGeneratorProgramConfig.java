@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -35,6 +36,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("local|eks-dev")
 public class AutoGeneratorProgramConfig {
 
   private final RequestMappingHandlerMapping requestMappingHandlerMapping;
@@ -76,7 +78,7 @@ public class AutoGeneratorProgramConfig {
                   e.getKey().getMethodsCondition().getMethods().iterator().next().name()))
               .actionUrl(e.getKey().getPatternsCondition().getPatterns().iterator().next()
                   .getPatternString())
-              .isUse(false)
+              .isUse(true)
               .description(operation.description())
               .build();
         })
