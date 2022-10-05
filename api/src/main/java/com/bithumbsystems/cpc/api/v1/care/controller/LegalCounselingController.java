@@ -33,7 +33,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/legal-counseling")
+//@RequestMapping("/legal-counseling")
 @RequiredArgsConstructor
 public class LegalCounselingController {
   private final LegalCounselingService legalCounselingService;
@@ -47,7 +47,7 @@ public class LegalCounselingController {
    * @param account 계정
    * @return
    */
-  @GetMapping
+//  @GetMapping
   @Operation(summary = "법률 상담 신청 목록 조회", description = "법률 상담 관리: 법률 상담 신청 목록 조회", tags = "법률 상담 관리")
   public ResponseEntity<Mono<?>> getLegalCounselingList(
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
@@ -69,7 +69,7 @@ public class LegalCounselingController {
    * @param account 계정
    * @return
    */
-  @GetMapping(value = "/{id}")
+//  @GetMapping(value = "/{id}")
   @Operation(summary = "법률 상담 신청 정보 조회", description = "법률 상담 관리: 법률 상담 신청 정보 조회", tags = "법률 상담 관리")
   public ResponseEntity<Mono<?>> getLegalCounselingData(@PathVariable Long id, @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(legalCounselingService.getLegalCounselingData(id, account)
@@ -82,7 +82,7 @@ public class LegalCounselingController {
    * @param account 계정
    * @return
    */
-  @PutMapping(value = "/{id}")
+//  @PutMapping(value = "/{id}")
   @Operation(summary = "법률 상담 신청 답변", description = "법률 상담 관리: 법률 상담 신청 답변 등록", tags = "법률 상담 관리")
   public ResponseEntity<Mono<?>> updateLegalCounseling(@RequestBody LegalCounselingRequest fraudReportRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
@@ -95,7 +95,7 @@ public class LegalCounselingController {
    * @param fileKey
    * @return
    */
-  @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
+//  @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "첨부 파일 다운로드", description = "법률 상담 관리: 첨부 파일 다운로드", tags = "법률 상담 관리")
   public Mono<ResponseEntity<?>> downloadAttachedFile(@PathVariable String fileKey) {
     return legalCounselingService.getFileInfo(fileKey)
@@ -125,7 +125,7 @@ public class LegalCounselingController {
    * @param account 계정
    * @return
    */
-  @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
+//  @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "엑셀 다운로드", description = "법률 상담 관리: 엑셀 다운로드", tags = "법률 상담 관리")
   public Mono<ResponseEntity<?>> downloadExcel(
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,

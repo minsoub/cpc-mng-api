@@ -33,7 +33,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/fraud-report")
+//@RequestMapping("/fraud-report")
 @RequiredArgsConstructor
 public class FraudReportController {
   private final FraudReportService fraudReportService;
@@ -47,7 +47,7 @@ public class FraudReportController {
    * @param account 계정
    * @return
    */
-  @GetMapping
+//  @GetMapping
   @Operation(summary = "사기 신고 목록 조회", description = "사기 신고 관리: 사기 신고 목록 조회", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> getFraudReportList(
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,
@@ -69,7 +69,7 @@ public class FraudReportController {
    * @param account 계정
    * @return
    */
-  @GetMapping(value = "/{id}")
+//  @GetMapping(value = "/{id}")
   @Operation(summary = "사기 신고 정보 조회", description = "사기 신고 관리: 사기 신고 정보 조회", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> getFraudReportData(@PathVariable Long id, @Parameter(hidden = true) @CurrentUser Account account) {
     return ResponseEntity.ok().body(fraudReportService.getFraudReportData(id, account)
@@ -82,7 +82,7 @@ public class FraudReportController {
    * @param account 계정
    * @return
    */
-  @PutMapping(value = "/{id}")
+//  @PutMapping(value = "/{id}")
   @Operation(summary = "사기 신고 답변", description = "사기 신고 관리: 사기 신고 답변", tags = "사기 신고 관리")
   public ResponseEntity<Mono<?>> updateFraudReport(@RequestBody FraudReportRequest fraudReportRequest,
       @Parameter(hidden = true) @CurrentUser Account account) {
@@ -95,7 +95,7 @@ public class FraudReportController {
    * @param fileKey
    * @return
    */
-  @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
+//  @GetMapping(value = "/download/{fileKey}", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "첨부 파일 다운로드", description = "사기 신고 관리: 첨부 파일 다운로드", tags = "사기 신고 관리")
   public Mono<ResponseEntity<?>> downloadAttachedFile(@PathVariable String fileKey) {
     return fraudReportService.getFileInfo(fileKey)
@@ -125,7 +125,7 @@ public class FraudReportController {
    * @param account 계정
    * @return
    */
-  @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
+//  @GetMapping(value = "/excel-download", produces = APPLICATION_OCTET_STREAM_VALUE)
   @Operation(summary = "엑셀 다운로드", description = "사기 신고 관리: 엑셀 다운로드", tags = "사기 신고 관리")
   public Mono<ResponseEntity<?>> downloadExcel(
       @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = ISO.DATE) LocalDate startDate,

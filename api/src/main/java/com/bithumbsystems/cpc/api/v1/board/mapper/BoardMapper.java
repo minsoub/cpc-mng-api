@@ -33,7 +33,7 @@ public interface BoardMapper {
   @Mapping(target = "title", source = "board.title")
   @Mapping(target = "createDate", source = "board.createDate")
   @Mapping(target = "createAccountId", source = "board.createAccountId")
-  @Mapping(target = "createAccountName", expression = "java(account.getName() + '(' + account.getEmail() + ')')")
+  @Mapping(target = "createAccountName", expression = "java(com.bithumbsystems.cpc.api.core.util.MaskingUtil.getNameMask(account.getName()) + '(' + com.bithumbsystems.cpc.api.core.util.MaskingUtil.getEmailMask(account.getEmail()) + ')')")
   BoardListResponse toDtoList(Board board, AdminAccount account);
 
   @Mapping(target = "readCount", ignore = true)
