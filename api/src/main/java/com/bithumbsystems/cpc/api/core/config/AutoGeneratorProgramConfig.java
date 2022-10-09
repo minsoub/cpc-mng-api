@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("local|eks-dev")
+@Profile("local|dev|eks-dev|qa")
 public class AutoGeneratorProgramConfig {
 
   private final RequestMappingHandlerMapping requestMappingHandlerMapping;
