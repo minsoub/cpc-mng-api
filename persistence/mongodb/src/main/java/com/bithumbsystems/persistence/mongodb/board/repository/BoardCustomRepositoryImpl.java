@@ -4,6 +4,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import java.time.LocalDate;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -26,10 +28,10 @@ public class BoardCustomRepositoryImpl implements BoardCustomRepository {
   private final ReactiveMongoTemplate reactiveMongoTemplate;
 
   @Override
-  public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, String category) {
+  public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, List<String> category) {
     Criteria criteria = new Criteria();
 
-    if (StringUtils.hasLength(category)) {
+    if (category.size()> 0) {
       criteria.andOperator(
           where("board_master_id").is(boardMasterId),
           where("create_date").gte(startDate).lt(endDate),

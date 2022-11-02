@@ -7,9 +7,13 @@ import com.bithumbsystems.persistence.mongodb.board.repository.BoardMasterReposi
 import com.bithumbsystems.persistence.mongodb.board.repository.BoardRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -91,7 +95,11 @@ public class BoardDomainService {
    * @return
    */
   public Flux<Board> findBySearchText(String boardMasterId, LocalDate startDate, LocalDate endDate, String keyword, String category) {
-    return boardCustomRepository.findBySearchText(boardMasterId, startDate, endDate, keyword, category);
+    // category가 있을 수도 있고 없을 수도 있다.
+    // 현재 조건에서 카테고리는 한개만 넘어온다.
+    List<String> categoryList = new ArrayList<String>();
+    if (StringUtils.hasLength(category)) categoryList.add(category);
+    return boardCustomRepository.findBySearchText(boardMasterId, startDate, endDate, keyword, categoryList);
   }
 
   /**
