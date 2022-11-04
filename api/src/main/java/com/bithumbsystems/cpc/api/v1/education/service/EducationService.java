@@ -40,7 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EducationService {
 
-    private EducationDomainService educationDomainService;
+    private final EducationDomainService educationDomainService;
     private final AwsProperties awsProperties;
 
     private final MessageService messageService;
