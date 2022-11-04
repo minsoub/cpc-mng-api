@@ -113,9 +113,10 @@ public class EducationService {
      * 신청자 정보 상세 데이터를 Unmasking 해서 리턴한다.
      *
      * @param id
+     * @param reason
      * @return
      */
-    public Mono<EducationResponse> findByIdUnmasking(String id, Account account) {
+    public Mono<EducationResponse> findByIdUnmasking(String id, String reason, Account account) {
         return educationDomainService.findById(id)
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
@@ -125,7 +126,7 @@ public class EducationService {
                     return result;
                 })
                 .map(EducationMapper.INSTANCE::educationResponse)
-                .doOnSuccess(r -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
+                .doOnSuccess(r -> sendPrivacyAccessLog(ActionType.VIEW, reason, account));
     }
 
 
