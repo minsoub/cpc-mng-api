@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -43,12 +44,17 @@ public class EducationController {
     public ResponseEntity<Mono<?>> getEducationMaskingList(
             @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(name = "is_answer_complete", required = false) Boolean isAnswerComplete,
+            @RequestParam(name = "is_answer_complete", required = false) String isAnswerComplete,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword)
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(keyword, "UTF-8");
+        Boolean answerComplete = null;
+        if (StringUtils.hasLength(isAnswerComplete)) {
+            if (isAnswerComplete.equals("true")) answerComplete = Boolean.TRUE;
+            else  answerComplete = Boolean.FALSE;
+        }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
-        return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), isAnswerComplete, word)
+        return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), answerComplete, word)
                 .collectList()
                 .map(MultiResponse::new));
     }
@@ -68,7 +74,7 @@ public class EducationController {
     public ResponseEntity<Mono<?>> getEducationUnMaskingList(
             @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(name = "is_answer_complete", required = false) Boolean isAnswerComplete,
+            @RequestParam(name = "is_answer_complete", required = false) String isAnswerComplete,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "reason", required = true, defaultValue = "") String reason,
             @Parameter(hidden = true) @CurrentUser Account account
@@ -76,8 +82,13 @@ public class EducationController {
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(keyword, "UTF-8");
         String reasonContent = URLDecoder.decode(reason, "UTF-8");
+        Boolean answerComplete = null;
+        if (StringUtils.hasLength(isAnswerComplete)) {
+            if (isAnswerComplete.equals("true")) answerComplete = Boolean.TRUE;
+            else  answerComplete = Boolean.FALSE;
+        }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
-        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), isAnswerComplete, word, reasonContent, account)
+        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), answerComplete, word, reasonContent, account)
                 .collectList()
                 .map(MultiResponse::new));
     }
