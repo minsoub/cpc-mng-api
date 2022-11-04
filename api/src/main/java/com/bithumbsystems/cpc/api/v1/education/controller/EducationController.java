@@ -48,7 +48,7 @@ public class EducationController {
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(keyword, "UTF-8");
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
-        return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), isAnswerComplete, keyword)
+        return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), isAnswerComplete, word)
                 .collectList()
                 .map(MultiResponse::new));
     }
@@ -73,7 +73,7 @@ public class EducationController {
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(keyword, "UTF-8");
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
-        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), isAnswerComplete, keyword)
+        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), isAnswerComplete, word)
                 .collectList()
                 .map(MultiResponse::new));
     }
