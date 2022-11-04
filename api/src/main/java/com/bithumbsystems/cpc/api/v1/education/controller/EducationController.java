@@ -55,7 +55,7 @@ public class EducationController {
         }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
         return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), answerComplete, word)
-                .collectList()
+                //.collectList()
                 .map(MultiResponse::new));
     }
 
@@ -89,7 +89,7 @@ public class EducationController {
         }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
         return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), answerComplete, word, reasonContent, account)
-                .collectList()
+                //.collectList()
                 .map(MultiResponse::new));
     }
     /**

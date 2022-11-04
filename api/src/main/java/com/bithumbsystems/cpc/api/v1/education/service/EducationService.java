@@ -32,6 +32,8 @@ import javax.mail.MessagingException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -58,7 +60,7 @@ public class EducationService {
      * @param keyword
      * @return
      */
-    public Flux<EducationResponse> searchList(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword) {
+    public Mono<List<EducationResponse>> searchList(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword) {
         return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
                 .map(result -> {
                     result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
@@ -67,7 +69,8 @@ public class EducationService {
 
                     return result;
                 })
-                .map(EducationMapper.INSTANCE::educationResponse);
+                .map(EducationMapper.INSTANCE::educationResponse)
+                .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed());
     }
     /**
      * 신청자 정보를 UnMasking 해서 리턴한다.
@@ -80,7 +83,7 @@ public class EducationService {
      * @param account
      * @return
      */
-    public Flux<EducationResponse> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword, String reasonContent, Account account) {
+    public Mono<List<EducationResponse>> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword, String reasonContent, Account account) {
         return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
@@ -90,7 +93,9 @@ public class EducationService {
                     return result;
                 })
                 .map(EducationMapper.INSTANCE::educationResponse)
-                .doOnComplete(() -> sendPrivacyAccessLog(ActionType.VIEW, reasonContent, account));
+                .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed())
+                .doOnSuccess(res -> sendPrivacyAccessLog(ActionType.VIEW, reasonContent, account)) ;
+
     }
 
     /**
