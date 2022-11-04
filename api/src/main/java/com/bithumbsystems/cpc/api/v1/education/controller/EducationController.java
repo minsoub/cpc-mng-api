@@ -69,11 +69,15 @@ public class EducationController {
             @RequestParam(name = "start_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(name = "end_date") @DateTimeFormat(pattern = "yyyy-MM-dd", iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(name = "is_answer_complete", required = false) Boolean isAnswerComplete,
-            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword)
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "reason", required = true, defaultValue = "") String reason,
+            @Parameter(hidden = true) @CurrentUser Account account
+    )
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(keyword, "UTF-8");
+        String reasonContent = URLDecoder.decode(reason, "UTF-8");
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
-        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), isAnswerComplete, word)
+        return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), isAnswerComplete, word, reasonContent, account)
                 .collectList()
                 .map(MultiResponse::new));
     }

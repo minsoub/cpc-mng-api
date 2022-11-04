@@ -76,9 +76,11 @@ public class EducationService {
      * @param endDate
      * @param isAnswerComplete
      * @param keyword
+     * @param reasonContent
+     * @param account
      * @return
      */
-    public Flux<EducationResponse> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword) {
+    public Flux<EducationResponse> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword, String reasonContent, Account account) {
         return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
@@ -87,7 +89,8 @@ public class EducationService {
 
                     return result;
                 })
-                .map(EducationMapper.INSTANCE::educationResponse);
+                .map(EducationMapper.INSTANCE::educationResponse)
+                .doOnComplete(() -> sendPrivacyAccessLog(ActionType.VIEW, reasonContent, account));
     }
 
     /**
