@@ -9,6 +9,7 @@ import com.bithumbsystems.cpc.api.core.util.AES256Util;
 import com.bithumbsystems.cpc.api.core.util.MaskingUtil;
 import com.bithumbsystems.cpc.api.core.util.message.MailSenderInfo;
 import com.bithumbsystems.cpc.api.core.util.message.MessageService;
+import com.bithumbsystems.cpc.api.v1.accesslog.request.AccessLogRequest;
 import com.bithumbsystems.cpc.api.v1.education.mapper.EducationMapper;
 import com.bithumbsystems.cpc.api.v1.education.model.request.EducationRequest;
 import com.bithumbsystems.cpc.api.v1.education.model.response.EducationResponse;
@@ -20,6 +21,7 @@ import com.bithumbsystems.persistence.mongodb.education.service.EducationDomainS
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -41,6 +43,8 @@ public class EducationService {
 
     private final MessageService messageService;
     private final SpringTemplateEngine templateEngine;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${webserver.url}")
     String webRootUrl;
@@ -111,7 +115,7 @@ public class EducationService {
      * @param id
      * @return
      */
-    public Mono<EducationResponse> findByIdUnmasking(String id) {
+    public Mono<EducationResponse> findByIdUnmasking(String id, Account account) {
         return educationDomainService.findById(id)
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
@@ -120,7 +124,8 @@ public class EducationService {
 
                     return result;
                 })
-                .map(EducationMapper.INSTANCE::educationResponse);
+                .map(EducationMapper.INSTANCE::educationResponse)
+                .doOnSuccess(r -> sendPrivacyAccessLog(ActionType.VIEW, null, account));
     }
 
 
@@ -196,5 +201,23 @@ public class EducationService {
         } catch (MessagingException | IOException e) {
             throw new MailException(ErrorCode.FAIL_SEND_MAIL);
         }
+    }
+
+    /**
+     * 개인정보 접근 로그 발송
+     * @param account
+     */
+    private void sendPrivacyAccessLog(ActionType actionType, String reason, Account account) {
+        applicationEventPublisher.publishEvent(
+                AccessLogRequest.builder()
+                        .email(account.getEmail())
+                        .accountId(account.getAccountId())
+                        .ip(account.getUserIp())
+                        .actionType(actionType)
+                        .reason(reason)
+                        .description("신청자 관리 - 개인정보 열람")
+                        .siteId(account.getMySiteId())
+                        .build()
+        );
     }
 }

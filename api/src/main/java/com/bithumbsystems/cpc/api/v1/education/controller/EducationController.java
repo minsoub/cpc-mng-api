@@ -103,9 +103,10 @@ public class EducationController {
     @GetMapping("/{id}/unmasking")
     @Operation(summary = "신청자 관리 상세 조회-마스킹 해제", description = "찾아가는 교육 관리 > 신청자 관리 상세 조회", tags = "찾아가는 교육 관리 > 신청자 관리 상세 조회")
     public ResponseEntity<Mono<?>> getEducationUnMasking(@Parameter(name = "id", description = "신청자관리 id", in = ParameterIn.PATH)
-                                                             @PathVariable("id") String id)
+                                                             @PathVariable("id") String id,
+                                                         @Parameter(hidden = true) @CurrentUser Account account)
             throws UnsupportedEncodingException {
-        return ResponseEntity.ok().body(educationService.findByIdUnmasking(id)
+        return ResponseEntity.ok().body(educationService.findByIdUnmasking(id, account)
                 .map(SingleResponse::new));
     }
 
