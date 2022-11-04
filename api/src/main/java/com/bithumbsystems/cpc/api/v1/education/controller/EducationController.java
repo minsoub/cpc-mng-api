@@ -116,7 +116,7 @@ public class EducationController {
      * @param educationRequest
      * @return
      */
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     @Operation(summary = "신청자 관리 답변 저장", description = "찾아가는 교육 관리 > 신청자 관리 답변 저장", tags = "찾아가는 교육 관리 > 신청자 관리 답변 저장")
     public ResponseEntity<Mono<?>> saveEducation(@Parameter(name = "project Object", description = "프로젝트 의 모든 정보", in = ParameterIn.PATH)
                                                      @RequestBody EducationRequest educationRequest,
