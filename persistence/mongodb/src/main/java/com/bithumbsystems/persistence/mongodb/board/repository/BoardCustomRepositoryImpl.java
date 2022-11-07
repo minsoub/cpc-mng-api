@@ -36,14 +36,22 @@ public class BoardCustomRepositoryImpl implements BoardCustomRepository {
           where("board_master_id").is(boardMasterId),
           where("create_date").gte(startDate).lt(endDate),
           where("is_use").is(true),
-          where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
           where("category").is(category)
+      );
+      criteria.orOperator(
+          where("title").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+          where("tags").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+          where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i")
       );
     } else {
       criteria.andOperator(
           where("board_master_id").is(boardMasterId),
           where("create_date").gte(startDate).lt(endDate),
-          where("is_use").is(true),
+          where("is_use").is(true)
+      );
+      criteria.orOperator(
+          where("contents").regex(".*" + keyword.toLowerCase() + ".*", "i"),
+          where("tags").regex(".*" + keyword.toLowerCase() + ".*", "i"),
           where("title").regex(".*" + keyword.toLowerCase() + ".*", "i")
       );
     }
