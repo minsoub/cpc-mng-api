@@ -18,7 +18,7 @@ public class Education {
     private String id;
     private String name;
     private String email;
-    private String phone;
+    private String cellPhone;
     private String content;
     private LocalDateTime desireDate;
     private Boolean isAnswerComplete;

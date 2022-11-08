@@ -65,7 +65,7 @@ public class EducationService {
                 .map(result -> {
                     result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
                     result.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail())));
-                    result.setPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getPhone())));
+                    result.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone())));
 
                     return result;
                 })
@@ -88,7 +88,7 @@ public class EducationService {
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
                     result.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail()));
-                    result.setPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getPhone()));
+                    result.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone()));
 
                     return result;
                 })
@@ -109,7 +109,7 @@ public class EducationService {
                 .map(result -> {
                     result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
                     result.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail())));
-                    result.setPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getPhone())));
+                    result.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone())));
 
                     return result;
                 })
@@ -129,7 +129,7 @@ public class EducationService {
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
                     result.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail()));
-                    result.setPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getPhone()));
+                    result.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone()));
 
                     return result;
                 })
