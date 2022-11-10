@@ -149,7 +149,7 @@ public class EducationService {
         return educationDomainService.findById(educationRequest.getId())
                 .flatMap(result -> {
                     result.setAnswer(educationRequest.getAnswer());
-                    result.setIsEmail(educationRequest.getIsEmail());
+                    result.setIsEmail(educationRequest.getIsEmail() == null ? false : true);
                     result.setUpdateAccountId(account.getAccountId());
                     result.setUpdateDate(LocalDateTime.now());
                     result.setIsAnswerComplete(true);

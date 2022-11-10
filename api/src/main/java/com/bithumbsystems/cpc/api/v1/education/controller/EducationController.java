@@ -2,6 +2,8 @@ package com.bithumbsystems.cpc.api.v1.education.controller;
 
 import com.bithumbsystems.cpc.api.core.config.resolver.Account;
 import com.bithumbsystems.cpc.api.core.config.resolver.CurrentUser;
+import com.bithumbsystems.cpc.api.core.exception.InvalidParameterException;
+import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.response.MultiResponse;
 import com.bithumbsystems.cpc.api.core.model.response.SingleResponse;
 import com.bithumbsystems.cpc.api.v1.education.model.request.EducationRequest;
@@ -139,6 +141,16 @@ public class EducationController {
     public ResponseEntity<Mono<?>> saveEducation(@Parameter(name = "project Object", description = "프로젝트 의 모든 정보", in = ParameterIn.PATH)
                                                      @RequestBody EducationRequest educationRequest,
                                                  @Parameter(hidden = true) @CurrentUser Account account) {
+        // Validation check
+        if (educationRequest.getIsMasking() == null) {
+            throw new InvalidParameterException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+        if (!StringUtils.hasLength(educationRequest.getAnswer())) {
+            throw new InvalidParameterException(ErrorCode.NOT_FOUND_CONTENT);
+        }
+        if (!StringUtils.hasLength(educationRequest.getAnswer())) {
+            throw new InvalidParameterException(ErrorCode.NOT_FOUND_CONTENT);
+        }
         return ResponseEntity.ok().body(educationService.save(educationRequest, account)
                 .map(c -> new SingleResponse(c))
         );
