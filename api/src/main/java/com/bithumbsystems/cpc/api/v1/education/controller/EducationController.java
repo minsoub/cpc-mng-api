@@ -53,7 +53,7 @@ public class EducationController {
         Boolean answerComplete = null;
         if (StringUtils.hasLength(isAnswerComplete)) {
             if (isAnswerComplete.equals("true")) answerComplete = Boolean.TRUE;
-            else  answerComplete = Boolean.FALSE;
+            else if (isAnswerComplete.equals("false")) answerComplete = Boolean.FALSE;
         }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
         return ResponseEntity.ok().body(educationService.searchList(startDate, endDate.plusDays(1), answerComplete, word)
@@ -87,7 +87,7 @@ public class EducationController {
         Boolean answerComplete = null;
         if (StringUtils.hasLength(isAnswerComplete)) {
             if (isAnswerComplete.equals("true")) answerComplete = Boolean.TRUE;
-            else  answerComplete = Boolean.FALSE;
+            else if (isAnswerComplete.equals("false")) answerComplete = Boolean.FALSE;
         }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
         return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), answerComplete, word, reasonContent, account)
