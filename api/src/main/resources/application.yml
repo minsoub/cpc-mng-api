@@ -89,6 +89,20 @@ server:
   port: 8080
 spring:
   config:
+    import: classpath:aws-properties-eks-prod.yml, classpath:springdoc.yml
+    activate:
+      on-profile: eks-prod
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml
+webserver:
+  url: https://safe.bithumbsystems.com/
+  board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
+
+---
+server:
+  port: 8080
+spring:
+  config:
     import: classpath:aws-properties-dev.yml, classpath:springdoc.yml
     activate:
       on-profile: dev
