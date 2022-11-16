@@ -28,8 +28,8 @@ public class EducationResponse {
     private LocalDateTime desireDate;
     @Schema(description = "답변여부")
     private Boolean isAnswerComplete;
-    @Schema(description = "개인정보 위탁 동의")
-    private Boolean isConsignmentAgreement;
+    //@Schema(description = "개인정보 위탁 동의")
+    //private Boolean isConsignmentAgreement;
     @Schema(description = "개인정보 수집 및 이용동의")
     private Boolean isUseAgreement;
     @Schema(description = "메일전송여부")
