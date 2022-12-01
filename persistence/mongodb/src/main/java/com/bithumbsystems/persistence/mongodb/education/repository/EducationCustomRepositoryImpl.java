@@ -52,4 +52,31 @@ public class EducationCustomRepositoryImpl implements EducationCustomRepository 
 
         return reactiveMongoTemplate.find(query, Education.class);
     }
+
+    @Override
+    public Flux<Education> findBySearchAll(LocalDate startDate, LocalDate endDate, String keyword, Boolean isAnswerComplete) {
+        Query query = new Query();
+        Criteria criteria = new Criteria();
+
+        if (isAnswerComplete != null) {
+            criteria.andOperator(
+                    where("create_date").gte(startDate).lt(endDate),
+                    where("is_answer_complete").is(isAnswerComplete)
+            );
+            criteria.orOperator(
+                    where("content").regex(".*" + keyword + ".*", "i")
+            );
+        } else {
+            criteria.andOperator(
+                    where("create_date").gte(startDate).lt(endDate)
+            );
+            criteria.orOperator(
+                    where("content").regex(".*" + keyword + ".*", "i")
+            );
+        }
+        query.addCriteria(criteria);
+        query.with(Sort.by("create_date").descending());
+
+        return reactiveMongoTemplate.find(query, Education.class);
+    }
 }

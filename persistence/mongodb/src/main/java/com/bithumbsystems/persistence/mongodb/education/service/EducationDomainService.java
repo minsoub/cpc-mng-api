@@ -32,6 +32,20 @@ public class EducationDomainService {
     }
 
     /**
+     * 신청자 관리 조회
+     * Keyword 조회의 경우 암호화 데이터라서 전체 조회 후 필터링 처리해야 한다.
+     *
+     * @param startDate
+     * @param endDate
+     * @param keyword
+     * @param isAnswerComplete
+     * @return
+     */
+    public Flux<Education> findBySearchAll(LocalDate startDate, LocalDate endDate, String keyword, Boolean isAnswerComplete) {
+        return educationCustomRepository.findBySearchAll(startDate, endDate, keyword, isAnswerComplete);
+    }
+
+    /**
      * 신청자 정보 수정
      * @param education
      * @return

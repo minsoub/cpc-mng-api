@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface EducationCustomRepository {
     Flux<Education> findBySearchText(LocalDate startDate, LocalDate endDate, String keyword, Boolean isAnswerComplete);
+    Flux<Education> findBySearchAll(LocalDate startDate, LocalDate endDate, String keyword, Boolean isAnswerComplete);
 }

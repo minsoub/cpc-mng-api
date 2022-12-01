@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import reactor.core.publisher.Flux;
@@ -61,7 +62,11 @@ public class EducationService {
      * @return
      */
     public Mono<List<EducationResponse>> searchList(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword) {
-        return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
+        return educationDomainService.findBySearchAll(startDate, endDate, keyword, isAnswerComplete)
+                .filter(
+                        res -> !StringUtils.hasLength(keyword) || (AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).indexOf(keyword) != -1 ||
+                                AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).indexOf(keyword) != -1)
+                )
                 .map(result -> {
                     result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
                     result.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail())));
@@ -71,6 +76,18 @@ public class EducationService {
                 })
                 .map(EducationMapper.INSTANCE::educationResponse)
                 .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed());
+//
+//
+//        return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
+//                .map(result -> {
+//                    result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
+//                    result.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail())));
+//                    result.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone())));
+//
+//                    return result;
+//                })
+//                .map(EducationMapper.INSTANCE::educationResponse)
+//                .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed());
     }
     /**
      * 신청자 정보를 UnMasking 해서 리턴한다.
@@ -84,17 +101,36 @@ public class EducationService {
      * @return
      */
     public Mono<List<EducationResponse>> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword, String reasonContent, Account account) {
-        return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
+        return educationDomainService.findBySearchAll(startDate, endDate, keyword, isAnswerComplete)
+                .filter(
+                        res -> !StringUtils.hasLength(keyword) || (AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).indexOf(keyword) != -1 ||
+                                AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).indexOf(keyword) != -1)
+                )
                 .map(result -> {
-                    result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
-                    result.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail()));
-                    result.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone()));
+                    result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
+                    result.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail())));
+                    result.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone())));
 
                     return result;
                 })
                 .map(EducationMapper.INSTANCE::educationResponse)
                 .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed())
                 .doOnSuccess(res -> sendPrivacyAccessLog(ActionType.VIEW, reasonContent, account)) ;
+//
+//
+//
+//
+//        return educationDomainService.findBySearchText(startDate, endDate, keyword, isAnswerComplete)
+//                .map(result -> {
+//                    result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
+//                    result.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getEmail()));
+//                    result.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getCellPhone()));
+//
+//                    return result;
+//                })
+//                .map(EducationMapper.INSTANCE::educationResponse)
+//                .collectSortedList(Comparator.comparing(EducationResponse::getCreateDate).reversed())
+//                .doOnSuccess(res -> sendPrivacyAccessLog(ActionType.VIEW, reasonContent, account)) ;
 
     }
 
