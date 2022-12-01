@@ -64,8 +64,10 @@ public class EducationService {
     public Mono<List<EducationResponse>> searchList(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword) {
         return educationDomainService.findBySearchAll(startDate, endDate, keyword, isAnswerComplete)
                 .filter(
-                        res -> (!StringUtils.hasLength(keyword) || (AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).indexOf(keyword) != -1 ||
-                                AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).indexOf(keyword) != -1))
+                        res -> (!StringUtils.hasLength(keyword)
+                        || ( AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).contains(keyword)
+                        || AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone()).contains(keyword)
+                        || AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).contains(keyword)))
                 )
                 .map(result -> {
                     result.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName())));
@@ -103,8 +105,10 @@ public class EducationService {
     public Mono<List<EducationResponse>> searchListUnmasking(LocalDate startDate, LocalDate endDate, Boolean isAnswerComplete, String keyword, String reasonContent, Account account) {
         return educationDomainService.findBySearchAll(startDate, endDate, keyword, isAnswerComplete)
                 .filter(
-                        res -> (!StringUtils.hasLength(keyword) || (AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).indexOf(keyword) != -1 ||
-                                AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).indexOf(keyword) != -1))
+                        res -> (!StringUtils.hasLength(keyword)
+                                || (AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()).contains(keyword)
+                                || AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone()).contains(keyword)
+                                ||  AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()).contains(keyword)))
                 )
                 .map(result -> {
                     result.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), result.getName()));
@@ -206,11 +210,11 @@ public class EducationService {
                     if (educationRequest.getIsMasking()) {
                         res.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName())));
                         res.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail())));
-                        res.setPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getPhone())));
+                        res.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone())));
                     } else {
                         res.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()));
                         res.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()));
-                        res.setPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getPhone()));
+                        res.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone()));
                     }
 
                     return res;

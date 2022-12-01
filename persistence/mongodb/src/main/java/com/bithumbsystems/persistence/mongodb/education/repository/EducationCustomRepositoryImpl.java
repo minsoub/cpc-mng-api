@@ -63,16 +63,16 @@ public class EducationCustomRepositoryImpl implements EducationCustomRepository 
                     where("create_date").gte(startDate).lt(endDate),
                     where("is_answer_complete").is(isAnswerComplete)
             );
-            criteria.orOperator(
-                    where("content").regex(".*" + keyword + ".*", "i")
-            );
+//            criteria.orOperator(
+//                    where("content").regex(".*" + keyword + ".*", "i")
+//            );
         } else {
             criteria.andOperator(
                     where("create_date").gte(startDate).lt(endDate)
             );
-            criteria.orOperator(
-                    where("content").regex(".*" + keyword + ".*", "i")
-            );
+//            criteria.orOperator(
+//                    where("content").regex(".*" + keyword + ".*", "i")
+//            );
         }
         query.addCriteria(criteria);
         query.with(Sort.by("create_date").descending());

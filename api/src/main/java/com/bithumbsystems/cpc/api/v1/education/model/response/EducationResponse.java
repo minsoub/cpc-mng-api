@@ -21,7 +21,7 @@ public class EducationResponse {
     @Schema(description = "이메일주소")
     private String email;
     @Schema(description = "휴대폰번호")
-    private String phone;
+    private String cellPhone;
     @Schema(description = "신청내용")
     private String content;
     @Schema(description = "교육희망일")
