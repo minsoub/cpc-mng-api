@@ -2,6 +2,7 @@ package com.bithumbsystems.cpc.api.core.exception;
 
 import com.bithumbsystems.cpc.api.core.model.enums.ErrorCode;
 import com.bithumbsystems.cpc.api.core.model.response.ErrorResponse;
+import com.bithumbsystems.cpc.api.v1.board.exception.BoardException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,14 @@ public class ExceptionHandlers {
   @ExceptionHandler(InvalidParameterException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<Mono<?>> serverExceptionHandler(InvalidParameterException ex) {
+    log.error(ex.getMessage(), ex);
+    ErrorData errorData = new ErrorData(ex.getErrorCode());
+    return ResponseEntity.badRequest().body(Mono.just(new ErrorResponse(errorData)));
+  }
+
+  @ExceptionHandler(BoardException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<Mono<?>> serverBoardExceptionHandler(BoardException ex) {
     log.error(ex.getMessage(), ex);
     ErrorData errorData = new ErrorData(ex.getErrorCode());
     return ResponseEntity.badRequest().body(Mono.just(new ErrorResponse(errorData)));

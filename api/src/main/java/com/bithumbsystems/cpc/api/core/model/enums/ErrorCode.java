@@ -25,7 +25,8 @@ public enum ErrorCode {
   INVALID_PHONE_FORMAT("F014", "잘못된 휴대폰번호 형식입니다. 휴대폰번호를 확인해 주세요."),
   NOT_ALLOWED_FILE_EXT("F015", "허용되지 않은 파일 확장자입니다. 파일을 확인해 주세요."),
   NOT_ALLOWED_FILE_SIZE("F016", "첨부가능한 파일 크기를 초과했습니다."),
-  INVALID_PARAMETER_FORMAT("F017", "파라미터 형식이 일치하지 않습니다.");
+  INVALID_PARAMETER_FORMAT("F017", "파라미터 형식이 일치하지 않습니다."),
+  INVALID_DELETE_DATA("F018", "삭제할 수 없는 데이터입니다.");
 
   private final String code;
   private final String message;

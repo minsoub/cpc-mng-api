@@ -34,7 +34,7 @@ public class MainContentsService {
   private final NewsDomainService newsDomainService;
 
   /**
-   * 가상 자산 기초 조회
+   * 빗썸 경제연구소 조회
    * @return
    */
   public Mono<List<BoardResponse>> getDigitalAssetBasic() {
@@ -48,7 +48,7 @@ public class MainContentsService {
   }
 
   /**
-   * 인사이트 칼럼 조회
+   * 오피니언 칼럼 조회
    * @return
    */
   public Mono<List<BoardResponse>> getInsightColumn() {
@@ -62,7 +62,7 @@ public class MainContentsService {
   }
 
   /**
-   * 가상 자산 동향 조회
+   * 이지코노미 조회
    * @return
    */
   public Mono<List<BoardResponse>> getDigitalAssetTrends() {
