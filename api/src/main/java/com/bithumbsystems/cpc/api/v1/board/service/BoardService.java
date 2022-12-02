@@ -404,7 +404,8 @@ public class BoardService {
                             list = res.getInsightColumn();
                         }
 
-                        if (list.containsAll(delIds)) {
+                        //if (list .containsAll(delIds)) {
+                        if (list.retainAll(delIds))  {  // 교집합
                             return Mono.just(true);
                         } else {
                             return Mono.just(false);
