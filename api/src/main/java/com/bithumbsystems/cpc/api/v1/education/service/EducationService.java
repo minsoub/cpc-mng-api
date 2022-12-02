@@ -52,6 +52,9 @@ public class EducationService {
     @Value("${webserver.url}")
     String webRootUrl;
 
+    @Value("${webserver.logo-url}")
+    String imageUrl;
+
     /**
      * 신청자 정보를 마스킹해서 리턴한다.
      *
@@ -233,8 +236,10 @@ public class EducationService {
             context.setVariable("name", name);
             context.setVariable("email", email);
             context.setVariable("contents", contents);
-            context.setVariable("imgHeaderUrl", webRootUrl + "img/email/header.png");
-            context.setVariable("imgFooterUrl", webRootUrl + "img/email/footer.png");
+            context.setVariable("webServerUrl", webRootUrl);
+            context.setVariable("imageUrl", imageUrl);
+            //context.setVariable("imgHeaderUrl", webRootUrl + "img/email/header.png");
+            //context.setVariable("imgFooterUrl", webRootUrl + "img/email/footer.png");
 
             String html = templateEngine.process("education-mail", context);
             log.info("mail address: {}", email);

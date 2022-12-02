@@ -69,7 +69,7 @@ logging:
 webserver:
   url: http://localhost:3000/
   board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
-
+  logo-url: http://localhost:3000/img/email/maillogo.png
 ---
 server:
   port: 8080
@@ -83,6 +83,7 @@ logging:
 webserver:
   url: https://safe.bithumbsystems.com/
   board-url: https://systems-board.s3.ap-northeast-2.amazonaws.com/
+  logo-url: https://safe.bithumbsystems.com/img/email/maillogo.png
 
 ---
 server:
@@ -97,7 +98,7 @@ logging:
 webserver:
   url: https://safe.dev.bithumb.com/
   board-url: https://bithumb-bs-dev-systems-board.s3.ap-northeast-2.amazonaws.com/
-
+  logo-url: https://safe.dev.bithumb.com/img/email/maillogo.png
 ---
 server:
   port: 8080
@@ -111,7 +112,7 @@ logging:
 webserver:
   url: https://safe.qa.bithumb.com/
   board-url: https://safe-s3.qa.bithumb.com/
-
+  logo-url: https://safe.qa.bithumb.com/img/email/maillogo.png
 ---
 server:
   port: 8080
@@ -128,3 +129,4 @@ logging:
 webserver:
   url: https://safe.bithumb.com/
   board-url: https://safe-s3.bithumb.com/
+  logo-url: https://safe.bithumb.com/img/email/maillogo.png
