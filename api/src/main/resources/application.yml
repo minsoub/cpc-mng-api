@@ -72,6 +72,28 @@ webserver:
   logo-url: http://localhost:3000/img/email/maillogo.png
 ---
 server:
+  port: 8083
+spring:
+  config:
+    import: classpath:aws-properties-localstack.yml, classpath:springdoc.yml
+    activate:
+      on-profile: localstack
+  data:
+    mongodb:
+      host: ${auth.mongo.host:localhost}
+      port: ${auth.mongo.port:27017}
+      database: ${auth.mongo.database:test}
+      auto-index-creation: true
+      uuid-representation: standard
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+logging:
+  config: classpath:logback-spring-${spring.profiles.active}.xml
+webserver:
+  url: http://localhost:3000/
+  board-url: https://bithumb-bs-dev-systems-board.s3.ap-northeast-2.amazonaws.com/
+  logo-url: http://localhost:3000/img/email/maillogo.png
+---
+server:
   port: 8080
 spring:
   config:
