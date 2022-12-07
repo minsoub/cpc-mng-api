@@ -19,6 +19,7 @@ import com.bithumbsystems.cpc.api.v1.board.model.response.BoardMasterResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.BoardResponse;
 import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderData;
 import com.bithumbsystems.cpc.api.v1.board.model.response.UploaderDataInfo;
+import com.bithumbsystems.cpc.api.v1.main.service.MainContentsService;
 import com.bithumbsystems.persistence.mongodb.account.model.entity.AdminAccount;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.Board;
 import com.bithumbsystems.persistence.mongodb.board.model.entity.BoardMaster;
@@ -31,13 +32,12 @@ import java.nio.ByteBuffer;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
+
+import com.bithumbsystems.persistence.mongodb.main.service.MainContentsDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,8 +63,13 @@ public class BoardService {
   private final S3AsyncClient s3AsyncClient;
   private final FileDomainService fileDomainService;
 
+  private final MainContentsDomainService mainContentsDomainService;
+
   @Value("${webserver.board-url}")
   private String boardBucketUrl;
+
+  //빗썸 경제연구소(CPC_ECONOMIC_RESEARCH), 이지코노미 (CPC_TREND), 오피니언 컬럼 (CPC_INSIGHT_COLUMN)
+  private final List<String> mainList = Arrays.asList( "CPC_ECONOMIC_RESEARCH", "CPC_TREND", "CPC_INSIGHT_COLUMN");
 
   /**
    * 게시판 유형 조회
@@ -294,38 +299,158 @@ public class BoardService {
     }
   }
 
-  /**
-   * 게시글 삭제
-   * @param boardId 게시글
-   * @param account 계정
-   * @return
-   */
-  public Mono<BoardResponse> deleteBoard(Long boardId, Account account) {
-    return boardDomainService.getBoardData(boardId)
-        .flatMap(board -> {
-          board.setUpdateAccountId(account.getAccountId());
-          return boardDomainService.deleteBoard(board);
-        })
-        .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
-            == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
-        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
-  }
+    /**
+     * 게시글 삭제
+     * @param boardMasterId 게시판 ID
+     * @param boardId 게시글
+     * @param account 계정
+     * @return
+     */
+    public Mono<BoardResponse> deleteBoard(String boardMasterId, Long boardId, Account account) {
 
-  /**
-   * 게시글 일괄 삭제
-   * @param deleteIds 게시글 ID
-   * @param account 계정
-   * @return
-   */
-  public Mono<Void> deleteBoards(String deleteIds, Account account) {
-    return Flux.fromArray(deleteIds.split("::"))
-        .flatMap(boardId -> boardDomainService.getBoardData(Long.parseLong(boardId))
-            .flatMap(board -> {
-              board.setUpdateAccountId(account.getAccountId());
-              return boardDomainService.deleteBoard(board);
-            }))
-        .then();
-  }
+        // 메인 노출에서 사용하는 게시판 데이터의 경우 삭제를 하면 안된다.
+        // 메인 노출 게시판 : 빗썸 경제연구소(CPC_ECONOMIC_RESEARCH), 이지코노미 (CPC_TREND), 오피니언 컬럼 (CPC_INSIGHT_COLUMN)
+        if (mainList.contains(boardMasterId)) {
+            //mainContentsService.getDigitalAssetBasic(), // 빗썸 경제연구소
+            //        mainContentsService.getInsightColumn(), // 오피니언 컬럼
+            //        mainContentsService.getDigitalAssetTrends()
+            return mainContentsDomainService.findOne()
+                    .flatMap(res -> {
+                        List<Long> list = null;
+                        if (boardMasterId.equals("CPC_ECONOMIC_RESEARCH")) {
+                            list = res.getDigitalAssetBasic(); // 빗썸 경제연구소
+                        } else if(boardMasterId.equals("CPC_TREND")) {  // 이지 코노미
+                            list = res.getDigitalAssetTrends();
+                        } else if(boardMasterId.equals("CPC_INSIGHT_COLUMN")) {
+                            list = res.getInsightColumn();
+                        }
+
+                        if (list.contains(boardId)) {
+                            return Mono.just(true);
+                        } else {
+                            return Mono.just(false);
+                        }
+                    })
+                    .flatMap(isExisted -> {
+                        if (isExisted) {
+                            return Mono.error(new BoardException(ErrorCode.INVALID_DELETE_DATA));
+                        } else {
+                            return boardDomainService.getBoardData(boardId)
+                                    .flatMap(board -> {
+                                        board.setUpdateAccountId(account.getAccountId());
+                                        return boardDomainService.deleteBoard(board);
+                                    })
+                                    .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+                                            == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+                                    .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
+                        }
+                    });
+        } else {
+            return boardDomainService.getBoardData(boardId)
+                    .flatMap(board -> {
+                        board.setUpdateAccountId(account.getAccountId());
+                        return boardDomainService.deleteBoard(board);
+                    })
+                    .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+                            == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+                    .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
+        }
+    }
+
+//  /**
+//   * 게시글 삭제
+//   * @param boardId 게시글
+//   * @param account 계정
+//   * @return
+//   */
+//  public Mono<BoardResponse> deleteBoard(Long boardId, Account account) {
+//    return boardDomainService.getBoardData(boardId)
+//        .flatMap(board -> {
+//          board.setUpdateAccountId(account.getAccountId());
+//          return boardDomainService.deleteBoard(board);
+//        })
+//        .map(board1 -> BoardMapper.INSTANCE.toDto(board1, board1.getAccountDocs()
+//            == null || board1.getAccountDocs().size() < 1 ? new AdminAccount() : board1.getAccountDocs().get(0)))
+//        .switchIfEmpty(Mono.error(new BoardException(ErrorCode.FAIL_DELETE_CONTENT)));
+//  }
+
+
+    /**
+     * 게시글 일괄 삭제
+     * @param boardMasterId 게시판 ID
+     * @param deleteIds 게시글 ID
+     * @param account 계정
+     * @return
+     */
+    public Mono<Void> deleteBoards(String boardMasterId, String deleteIds, Account account) {
+
+        String[] ids = deleteIds.split("::");
+        List<Long> delIds = Arrays.stream(ids).map(Long::parseLong).collect(Collectors.toList());
+
+        // 메인 노출에서 사용하는 게시판 데이터의 경우 삭제를 하면 안된다.
+        // 메인 노출 게시판 : 빗썸 경제연구소(CPC_ECONOMIC_RESEARCH), 이지코노미 (CPC_TREND), 오피니언 컬럼 (CPC_INSIGHT_COLUMN)
+        if (mainList.contains(boardMasterId)) {
+            //mainContentsService.getDigitalAssetBasic(), // 빗썸 경제연구소
+            //        mainContentsService.getInsightColumn(), // 오피니언 컬럼
+            //        mainContentsService.getDigitalAssetTrends()
+            return mainContentsDomainService.findOne()
+                    .flatMap(res -> {
+                        List<Long> list = null;
+                        if (boardMasterId.equals("CPC_ECONOMIC_RESEARCH")) {
+                            list = res.getDigitalAssetBasic(); // 빗썸 경제연구소
+                        } else if(boardMasterId.equals("CPC_TREND")) {  // 이지 코노미
+                            list = res.getDigitalAssetTrends();
+                        } else if(boardMasterId.equals("CPC_INSIGHT_COLUMN")) {
+                            list = res.getInsightColumn();
+                        }
+
+                        //if (list .containsAll(delIds)) {
+                        if (list.retainAll(delIds))  {  // 교집합
+                            return Mono.just(true);
+                        } else {
+                            return Mono.just(false);
+                        }
+                    })
+                    .flatMap(isExisted -> {
+                        if (isExisted) {
+                            return Mono.error(new BoardException(ErrorCode.INVALID_DELETE_DATA));
+                        } else {
+                            return Flux.fromArray(deleteIds.split("::"))
+                                    .flatMap(boardId -> boardDomainService.getBoardData(Long.parseLong(boardId))
+                                            .flatMap(board -> {
+                                                board.setUpdateAccountId(account.getAccountId());
+                                                return boardDomainService.deleteBoard(board);
+                                            }))
+                                    .then();
+                        }
+                    });
+        } else {
+            return Flux.fromArray(deleteIds.split("::"))
+                    .flatMap(boardId -> boardDomainService.getBoardData(Long.parseLong(boardId))
+                            .flatMap(board -> {
+                                board.setUpdateAccountId(account.getAccountId());
+                                return boardDomainService.deleteBoard(board);
+                            }))
+                    .then();
+        }
+    }
+
+
+//  /**
+//   * 게시글 일괄 삭제
+//   * @param deleteIds 게시글 ID
+//   * @param account 계정
+//   * @return
+//   */
+//  public Mono<Void> deleteBoards(String deleteIds, Account account) {
+//    return Flux.fromArray(deleteIds.split("::"))
+//        .flatMap(boardId -> boardDomainService.getBoardData(Long.parseLong(boardId))
+//            .flatMap(board -> {
+//              board.setUpdateAccountId(account.getAccountId());
+//              return boardDomainService.deleteBoard(board);
+//            }))
+//        .then();
+//  }
 
   /**
    * 게시판 파일 업로드

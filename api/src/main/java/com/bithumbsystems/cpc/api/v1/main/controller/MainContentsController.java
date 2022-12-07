@@ -37,14 +37,15 @@ public class MainContentsController {
 
   /**
    * 메인화면 선택된 컨텐츠 조회
+   * 빗썸 경제연구소, 이지코노미, 오피니언 컬럼
    * @return
    */
   @GetMapping
   @Operation(summary = "메인화면 선택된 컨텐츠 조회", description = "메인 관리 > 콘텐츠 노출 관리: 메인화면 선택된 컨텐츠 조회", tags = "메인 관리 > 콘텐츠 노출 관리")
   public ResponseEntity<Mono<?>> getMainContents() {
-    return ResponseEntity.ok().body(Mono.zip(mainContentsService.getDigitalAssetBasic(),
-            mainContentsService.getInsightColumn(),
-            mainContentsService.getDigitalAssetTrends(),
+    return ResponseEntity.ok().body(Mono.zip(mainContentsService.getDigitalAssetBasic(), // 빗썸 경제연구소
+            mainContentsService.getInsightColumn(), // 오피니언 컬럼
+            mainContentsService.getDigitalAssetTrends(), // 이지코노미
             mainContentsService.getBlockchainNews())
         .flatMap(tuple -> Mono.just(MainContentsResponse.builder()
             .digitalAssetBasic(tuple.getT1())

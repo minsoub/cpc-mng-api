@@ -232,7 +232,7 @@ public class BoardController {
   public ResponseEntity<Mono<?>> deleteBoard(@PathVariable String boardMasterId,
       @PathVariable Long boardId,
       @Parameter(hidden = true) @CurrentUser Account account) {
-    return ResponseEntity.ok().body(boardService.deleteBoard(boardId, account).then(
+    return ResponseEntity.ok().body(boardService.deleteBoard(boardMasterId, boardId, account).then(
         Mono.just(new SingleResponse()))
     );
   }
@@ -248,7 +248,7 @@ public class BoardController {
   public ResponseEntity<Mono<?>> deleteBoards(@PathVariable String boardMasterId,
       @RequestParam(value = "deleteIds") String deleteIds,
       @Parameter(hidden = true) @CurrentUser Account account) {
-    return ResponseEntity.ok().body(boardService.deleteBoards(deleteIds, account).then(
+    return ResponseEntity.ok().body(boardService.deleteBoards(boardMasterId, deleteIds, account).then(
         Mono.just(new SingleResponse()))
     );
   }
