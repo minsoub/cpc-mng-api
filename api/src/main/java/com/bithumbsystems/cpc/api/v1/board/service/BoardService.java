@@ -404,6 +404,8 @@ public class BoardService {
                             list = res.getInsightColumn();
                         }
 
+                        log.debug("## delelete lists => {}", delIds);
+                        log.debug("## list => {}", list);
                         //if (list .containsAll(delIds)) {
                         if (list.retainAll(delIds))  {  // 교집합
                             return Mono.just(true);
@@ -412,6 +414,7 @@ public class BoardService {
                         }
                     })
                     .flatMap(isExisted -> {
+                        log.debug("isExisted => {}", isExisted);
                         if (isExisted) {
                             return Mono.error(new BoardException(ErrorCode.INVALID_DELETE_DATA));
                         } else {
