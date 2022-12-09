@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BoardListResponse {
   private Long id;
-  private String category;
+  private List<String> category;
   private String title;
   private List<String> tags;
   private String thumbnail;

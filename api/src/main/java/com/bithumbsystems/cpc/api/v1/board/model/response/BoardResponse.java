@@ -19,7 +19,7 @@ public class BoardResponse {
   private List<String> tags;
   private String thumbnail;
   private String description;
-  private String category;
+  private List<String> category;
   private String contributor;
   private LocalDateTime createDate;
   private String createAccountId;

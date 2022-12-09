@@ -33,7 +33,7 @@ public class Board {
   private List<String> tags;
   private String thumbnail;
   private String description;
-  private String category;
+  private List<String> category;
   private String contributor;
   @CreatedDate private LocalDateTime createDate;
   @CreatedBy private String createAccountId;
