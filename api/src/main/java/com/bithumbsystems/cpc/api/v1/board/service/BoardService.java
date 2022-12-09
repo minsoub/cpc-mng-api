@@ -406,12 +406,21 @@ public class BoardService {
 
                         log.debug("## delelete lists => {}", delIds);
                         log.debug("## list => {}", list);
-                        //if (list .containsAll(delIds)) {
-                        if (list.retainAll(delIds))  {  // 교집합
-                            return Mono.just(true);
-                        } else {
-                            return Mono.just(false);
+
+                        boolean isDelete = false;
+                        for (Long id: delIds) {
+                            if (list.contains(id)) {
+                                isDelete = true;
+                                break;
+                            }
                         }
+                        return Mono.just(isDelete);
+                        //if (list .containsAll(delIds)) {
+//                        if (list.retainAll(delIds))  {  // 교집합
+//                            return Mono.just(true);
+//                        } else {
+//                            return Mono.just(false);
+//                        }
                     })
                     .flatMap(isExisted -> {
                         log.debug("isExisted => {}", isExisted);
