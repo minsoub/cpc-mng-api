@@ -89,6 +89,9 @@ public class EducationController {
             if (isAnswerComplete.equals("true")) answerComplete = Boolean.TRUE;
             else if (isAnswerComplete.equals("false")) answerComplete = Boolean.FALSE;
         }
+        if (!StringUtils.hasLength(reason)) {
+            throw new InvalidParameterException(ErrorCode.NOT_FOUND_CONTENT);
+        }
         log.info("keyword: {}", keyword.replaceAll("[\r\n]",""));
         return ResponseEntity.ok().body(educationService.searchListUnmasking(startDate, endDate.plusDays(1), answerComplete, word, reasonContent, account)
                 //.collectList()
@@ -125,6 +128,10 @@ public class EducationController {
                                                          @Parameter(hidden = true) @CurrentUser Account account)
             throws UnsupportedEncodingException {
         String word = URLDecoder.decode(reason, "UTF-8");
+
+        if (!StringUtils.hasLength(reason)) {
+            throw new InvalidParameterException(ErrorCode.NOT_FOUND_CONTENT);
+        }
         return ResponseEntity.ok().body(educationService.findByIdUnmasking(id, word, account)
                 .map(SingleResponse::new));
     }
@@ -142,9 +149,9 @@ public class EducationController {
                                                      @RequestBody EducationRequest educationRequest,
                                                  @Parameter(hidden = true) @CurrentUser Account account) {
         // Validation check
-        if (educationRequest.getIsMasking() == null) {
-            throw new InvalidParameterException(ErrorCode.INVALID_PARAMETER_FORMAT);
-        }
+//        if (educationRequest.getIsMasking() == null) {
+//            throw new InvalidParameterException(ErrorCode.INVALID_PARAMETER_FORMAT);
+//        }
         if (!StringUtils.hasLength(educationRequest.getAnswer())) {
             throw new InvalidParameterException(ErrorCode.NOT_FOUND_CONTENT);
         }
