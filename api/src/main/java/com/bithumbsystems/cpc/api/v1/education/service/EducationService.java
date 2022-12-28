@@ -210,15 +210,15 @@ public class EducationService {
                             });
                 })
                 .map(res -> {
-//                    if (educationRequest.getIsMasking()) {
+                    if (educationRequest.getIsMasking()) {
                         res.setName(MaskingUtil.getNameMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName())));
                         res.setEmail(MaskingUtil.getEmailMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail())));
                         res.setCellPhone(MaskingUtil.getPhoneMask(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone())));
-//                    } else {
-//                        res.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()));
-//                        res.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()));
-//                        res.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone()));
-//                    }
+                    } else {
+                        res.setName(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getName()));
+                        res.setEmail(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getEmail()));
+                        res.setCellPhone(AES256Util.decryptAES(awsProperties.getKmsKey(), res.getCellPhone()));
+                    }
 
                     return res;
                 });

@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 
 @Slf4j
 @Data
-@Profile("dev|qa|prod|eks-dev")
+@Profile("dev|qa|prod|eks-dev|eks-prod")
 @Configuration
 public class ParameterStoreConfig {
 
